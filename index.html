@@ -1109,50 +1109,37 @@ function toast(msg){
   });
 });
 
-// PWA – icon from embedded logo
-function makeIcon(sz){
-  return new Promise(resolve=>{
-    const c=document.createElement('canvas');c.width=c.height=sz;
-    const ctx=c.getContext('2d');
-    const img=new Image();
-    img.onload=()=>{
-      // White background
-      ctx.fillStyle='#fff';
-      ctx.fillRect(0,0,sz,sz);
-      // Draw logo centered, with padding
-      const pad=sz*.05;
-      ctx.drawImage(img,pad,pad,sz-pad*2,sz-pad*2);
-      resolve(c.toDataURL('image/png'));
-    };
-    img.onerror=()=>{
-      // Fallback: gradient + text
-      const g=ctx.createLinearGradient(0,0,sz,sz);
-      g.addColorStop(0,'#1B3A5C');g.addColorStop(1,'#264D78');
-      ctx.fillStyle=g;ctx.fillRect(0,0,sz,sz);
-      ctx.font=`${sz*.55}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillText('🗺️',sz/2,sz/2);
-      resolve(c.toDataURL('image/png'));
-    };
-    img.src=LOGO_SRC;
-  });
-}
-// Generate icons asynchronously then register PWA
-let ic192='',ic512='';
-// Async PWA icon + manifest setup
-Promise.all([makeIcon(192),makeIcon(512)]).then(([i192,i512])=>{
-  ic192=i192;ic512=i512;
-  const al=document.createElement('link');al.rel='apple-touch-icon';al.href=i192;document.head.appendChild(al);
-  const ml=document.createElement('link');ml.rel='manifest';
-  ml.href='data:application/manifest+json,'+encodeURIComponent(JSON.stringify({
-    name:'Kids Adventure Map',short_name:'KidsMap',
-    description:'Altersgerechte Ausflugsziele rund um Moers',
-    start_url:'.',display:'standalone',orientation:'portrait-primary',
-    background_color:'#ffffff',theme_color:'#1B3A5C',lang:'de',
-    icons:[{src:i192,sizes:'192x192',type:'image/png',purpose:'any maskable'},
-           {src:i512,sizes:'512x512',type:'image/png',purpose:'any maskable'}]
-  }));
-  document.head.appendChild(ml);
-});
+// PWA icons use LOGO_SRC directly
+// PWA icon + manifest — use logo directly as icon (no canvas needed)
+const iconSrc = LOGO_SRC; // already base64 PNG
+
+// Apple touch icon
+const al=document.createElement('link');
+al.rel='apple-touch-icon';
+al.href=iconSrc;
+document.head.appendChild(al);
+
+// Web App Manifest with logo as icon
+const ml=document.createElement('link');
+ml.rel='manifest';
+ml.href='data:application/manifest+json,'+encodeURIComponent(JSON.stringify({
+  name:'Kids Adventure Map',
+  short_name:'KidsMap',
+  description:'Altersgerechte Ausflugsziele rund um Moers',
+  start_url:'.',
+  display:'standalone',
+  orientation:'portrait-primary',
+  background_color:'#ffffff',
+  theme_color:'#1B3A5C',
+  lang:'de',
+  icons:[
+    {src:iconSrc, sizes:'192x192', type:'image/png', purpose:'any'},
+    {src:iconSrc, sizes:'512x512', type:'image/png', purpose:'any'},
+    {src:iconSrc, sizes:'192x192', type:'image/png', purpose:'maskable'},
+    {src:iconSrc, sizes:'512x512', type:'image/png', purpose:'maskable'}
+  ]
+}));
+document.head.appendChild(ml);
 
 if('serviceWorker' in navigator){
   const sw=`const C='kidsmap-v2.1.0';
