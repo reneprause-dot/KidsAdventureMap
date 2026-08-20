@@ -326,6 +326,22 @@ textarea{resize:vertical;min-height:72px;}
   font-weight:800;font-size:.875rem;opacity:0;transition:opacity .25s,transform .25s;
   z-index:400;white-space:nowrap;pointer-events:none;max-width:calc(100vw - 2rem);text-align:center;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── Sort Bar ─────────────────────────────────────────────────── */
+.sort-bar{background:#fff;border-bottom:1px solid var(--border);
+  padding:.45rem max(1rem,var(--safe-left));display:flex;align-items:center;
+  gap:.5rem;flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;}
+.sort-bar::-webkit-scrollbar{display:none;}
+.sort-label{font-size:.72rem;font-weight:700;color:var(--muted);
+  white-space:nowrap;text-transform:uppercase;letter-spacing:.05em;flex-shrink:0;}
+.sort-btn{flex-shrink:0;padding:.28rem .7rem;border-radius:20px;
+  border:2px solid var(--border);background:#fff;font-size:.75rem;font-weight:700;
+  cursor:pointer;color:var(--muted);white-space:nowrap;
+  display:flex;align-items:center;gap:.25rem;min-height:32px;
+  transition:all .18s;-webkit-tap-highlight-color:transparent;}
+.sort-btn.on{border-color:var(--coral);background:var(--coral);color:#fff;}
+.sort-dir{font-size:.7rem;opacity:.8;}
 </style>
 </head>
 <body>
@@ -408,11 +424,20 @@ textarea{resize:vertical;min-height:72px;}
       </div>
       <div class="radius-row">
         <label>&#x1F4CD; Radius</label>
-        <input type="range" id="r-slider" min="5" max="150" step="5" value="30" oninput="setRadius(this.value)">
+        <input type="range" id="r-slider" min="5" max="500" step="5" value="30" oninput="setRadius(this.value)">
         <span class="radius-val" id="r-val">30 km</span>
       </div>
     </div>
     <div class="stats-bar" id="stats-bar"></div>
+    <div class="sort-bar" id="sort-bar">
+      <span class="sort-label">&#x21C5; Sort:</span>
+      <button class="sort-btn on" id="sb-match"   onclick="setSort('match')">  &#x2714; Alters-Match</button>
+      <button class="sort-btn"   id="sb-dist"    onclick="setSort('dist')">   &#x1F4CD; Entfernung</button>
+      <button class="sort-btn"   id="sb-rating"  onclick="setSort('rating')"> &#x2B50; Bewertung</button>
+      <button class="sort-btn"   id="sb-alpha"   onclick="setSort('alpha')">  &#x1F524; A&#x2013;Z</button>
+      <button class="sort-btn"   id="sb-type"    onclick="setSort('type')">   &#x1F3F7; Kategorie</button>
+      <button class="sort-btn"   id="sb-free"    onclick="setSort('free')">   &#x1F193; Kostenlos zuerst</button>
+    </div>
     <div class="scroll"><div class="venues-grid" id="v-grid"></div></div>
   </div>
 
@@ -678,6 +703,24 @@ const DEF=[
   {id:60,name:"Naturspielplatz Kamper Wald",type:"Spielplatz",emoji:"🌲",address:"Kamper Wald, 47445 Moers-Kapellen",distanceKm:5,minAge:2,maxAge:14,googleRating:4.5,googleMapsUrl:"https://www.google.com/maps/search/Kamper+Wald+Moers",website:"#",cost:"kostenlos",openHours:"täglich",description:"Naturnaher Waldspielplatz mit Barfußpfad, Baumstammklettern, Wasserlauf und Feuerstelle.",weather:"outdoor"},
   {id:61,name:"Freizeitpark Bettenkamp Moers",type:"Spielplatz",emoji:"⛹️",address:"Bettenkamp, 47447 Moers",distanceKm:4,minAge:0,maxAge:14,googleRating:4.0,googleMapsUrl:"https://www.google.com/maps/search/Spielplatz+Bettenkamp+Moers",website:"#",cost:"kostenlos",openHours:"täglich",description:"Freizeitanlage mit Bolzplatz, Basketballkorb, Spielgeräten und Picknickbereich.",weather:"outdoor"},
   {id:62,name:"Naturerlebnispark Weeze",type:"Spielplatz",emoji:"✈️",address:"Nähe Weeze, 47652 Weeze",distanceKm:35,minAge:0,maxAge:12,googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/search/Spielplatz+Weeze+Naturerlebnispark",website:"#",cost:"kostenlos",openHours:"täglich",description:"Weitläufiger Naturerlebnispark nahe Weeze mit Abenteuerpfad, Kletterwald und Wasserpumpen.",weather:"outdoor"}
+
+  // ── Weitere Ausflugsziele (100–500 km) ──
+  {id:70,name:"Europa-Park Rust",type:"Freizeitpark",emoji:"🎢",address:"Europa-Park-Str. 2, 77977 Rust",distanceKm:320,minAge:2,maxAge:99,googleRating:4.6,googleMapsUrl:"https://www.google.com/maps/place/Europa-Park",website:"https://www.europapark.de",cost:"ab 57,50 € / Person",openHours:"tägl. 9:00–18:00 (saisonal variiert)",description:"Einer der besten Freizeitparks Europas mit 13 Themenwelten, über 100 Attraktionen und eigenem Kinderland 'Rulantica'.",weather:"outdoor"},
+  {id:71,name:"Legoland Deutschland Günzburg",type:"Freizeitpark",emoji:"🧱",address:"LEGOLAND-Allee 1, 89312 Günzburg",distanceKm:440,minAge:2,maxAge:12,googleRating:4.4,googleMapsUrl:"https://www.google.com/maps/place/LEGOLAND+Deutschland",website:"https://www.legoland.de",cost:"ab 42 € / Person (online günstiger)",openHours:"Apr–Okt (saisonal)",description:"Der LEGO-Freizeitpark mit über 60 Attraktionen, Wasserpark, Miniland und speziellem Kleinkindbereich.",weather:"outdoor"},
+  {id:72,name:"Efteling (NL)",type:"Freizeitpark",emoji:"🧚",address:"Europalaan 1, 5171 KW Kaatsheuvel, NL",distanceKm:155,minAge:0,maxAge:99,googleRating:4.7,googleMapsUrl:"https://www.google.com/maps/place/Efteling",website:"https://www.efteling.com/de",cost:"ab 43 € / Person",openHours:"tägl. (ganzjährig, Winter-Efteling Nov–Jan)",description:"Märchenhafter Freizeitpark in den Niederlanden – einer der schönsten Europas, mit Märchenwald, Achterbahnen und Shows.",weather:"outdoor"},
+  {id:73,name:"Duinrell (NL)",type:"Freizeitpark",emoji:"🌊",address:"Duinrell 1, 2242 JP Wassenaar, NL",distanceKm:200,minAge:0,maxAge:99,googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/place/Duinrell",website:"https://www.duinrell.nl",cost:"ab 23 € / Person",openHours:"Apr–Okt (saisonal)",description:"Niederländischer Freizeitpark mit großem Wasserpark 'Tikibad', Achterbahnen und Kleinkindbereich direkt an der Nordsee.",weather:"outdoor"},
+  {id:74,name:"Toverland (NL)",type:"Freizeitpark",emoji:"🪄",address:"Toverlaan 2, 5975 MV Sevenum, NL",distanceKm:85,minAge:0,maxAge:99,googleRating:4.4,googleMapsUrl:"https://www.google.com/maps/place/Toverland",website:"https://www.toverland.com/de",cost:"ab 28 € / Person",openHours:"saisonal (März–Nov)",description:"Familienfreizeitpark in den Niederlanden nahe Venlo – mit großem Indoor-Bereich, ideal auch bei Regen.",weather:"outdoor"},
+  {id:75,name:"Heide-Park Resort Soltau",type:"Freizeitpark",emoji:"🌲",address:"Heide-Park 1, 29614 Soltau",distanceKm:310,minAge:2,maxAge:99,googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/place/Heide+Park+Resort",website:"https://www.heide-park.de",cost:"ab 36 € / Person",openHours:"Apr–Okt (saisonal)",description:"Einer der größten Freizeitparks Norddeutschlands mit Colossos-Holzachterbahn, Wasserpark und Kinderwelt.",weather:"outdoor"},
+  {id:76,name:"Movie Park Studio Tour (Warner Bros.)",type:"Erlebnis",emoji:"🎬",address:"Nähe London/Leavesden (Tagesausflug DE–UK nicht empfohlen)",distanceKm:490,minAge:4,maxAge:99,googleRating:4.8,googleMapsUrl:"https://www.google.com/maps/place/Warner+Bros+Studio+Tour",website:"https://www.wbstudiotour.co.uk",cost:"ab 52 £ / Person",openHours:"tägl. (Voranmeldung nötig)",description:"Original Harry-Potter-Filmsets, Kostüme und Requisiten im Warner Bros. Studio. Unvergesslich für Fans jeden Alters.",weather:"indoor"},
+  {id:77,name:"Hansa-Park Sierksdorf",type:"Freizeitpark",emoji:"⚓",address:"Am Fahrenkrog 1, 23730 Sierksdorf",distanceKm:480,minAge:2,maxAge:99,googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/place/Hansa-Park",website:"https://www.hansapark.de",cost:"ab 34 € / Person",openHours:"Apr–Okt (saisonal)",description:"Hanseatischer Freizeitpark an der Ostsee mit Skandinavien-Thema, Familienattraktionen und großem Kinderbereich.",weather:"outdoor"},
+  {id:78,name:"Naturzoo Rheine",type:"Zoo",emoji:"🦁",address:"Stadtwaldstr. 60, 48432 Rheine",distanceKm:95,minAge:0,maxAge:99,googleRating:4.4,googleMapsUrl:"https://www.google.com/maps/place/Naturzoo+Rheine",website:"https://www.naturzoo.de",cost:"ab 10 € Kind · 16 € Erw.",openHours:"tägl. 9:00–18:00",description:"Naturnaher Zoo in Rheine mit Gorilla-Freianlage, Streichelzoo und großem Wasserspielbereich für Kinder.",weather:"outdoor"},
+  {id:79,name:"Kölner Zoo",type:"Zoo",emoji:"🐘",address:"Riehler Str. 173, 50735 Köln",distanceKm:70,minAge:0,maxAge:99,googleRating:4.4,googleMapsUrl:"https://www.google.com/maps/place/Kölner+Zoo",website:"https://www.koelnerzoo.de",cost:"ab 13 € Kind · 22 € Erw.",openHours:"tägl. 9:00–18:00 (Winter bis 17:00)",description:"Einer der ältesten und schönsten Zoos Deutschlands mit Elefantentempel, Hippodom und großem Kinderzoo.",weather:"outdoor"},
+  {id:80,name:"Zoo Dortmund",type:"Zoo",emoji:"🦒",address:"Mergelteichstr. 80, 44225 Dortmund",distanceKm:48,minAge:0,maxAge:99,googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/place/Zoo+Dortmund",website:"https://www.zoo.dortmund.de",cost:"ab 7 € Kind · 13 € Erw.",openHours:"tägl. 9:00–18:00",description:"Kompakter Familienzoo mit Dschungelhaus, Streichelzoo und buntem Kinderprogramm.",weather:"outdoor"},
+  {id:81,name:"Ravensburger Spieleland",type:"Freizeitpark",emoji:"🎲",address:"Ravensburger Str. 70, 88085 Langenargen",distanceKm:480,minAge:2,maxAge:12,googleRating:4.4,googleMapsUrl:"https://www.google.com/maps/place/Ravensburger+Spieleland",website:"https://www.spieleland.de",cost:"ab 32 € / Person",openHours:"Apr–Okt (saisonal)",description:"Familienfreizeitpark am Bodensee – besonders für Kinder bis 12 Jahren ideal, mit vielen Mitmach-Attraktionen.",weather:"outdoor"},
+  {id:82,name:"Serengeti-Park Hodenhagen",type:"Zoo",emoji:"🦓",address:"Serengeti-Park 1, 29693 Hodenhagen",distanceKm:330,minAge:0,maxAge:99,googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/place/Serengeti-Park+Hodenhagen",website:"https://www.serengeti-park.de",cost:"ab 24 € Kind · 32 € Erw.",openHours:"Apr–Okt tägl.",description:"Safari-Park mit Freigehegen zum Durchfahren – Löwen, Giraffen, Nashörner und über 50 Tierarten live erleben.",weather:"outdoor"},
+  {id:83,name:"Bellewaerde Park (BE)",type:"Freizeitpark",emoji:"🎡",address:"Meenseweg 497, 8900 Ieper, Belgien",distanceKm:195,minAge:0,maxAge:99,googleRating:4.2,googleMapsUrl:"https://www.google.com/maps/place/Bellewaerde",website:"https://www.bellewaerde.be",cost:"ab 30 € / Person",openHours:"saisonal (Apr–Okt)",description:"Belgischer Freizeitpark mit Zoo, Wasserattraktionen und eigenem Kinderbereich – lohnendes Ausflugsziel ins Nachbarland.",weather:"outdoor"},
+  {id:84,name:"Attractiepark Slagharen (NL)",type:"Freizeitpark",emoji:"🤠",address:"Zwarte Dijk 100, 7776 PJ Slagharen, NL",distanceKm:125,minAge:0,maxAge:99,googleRating:4.1,googleMapsUrl:"https://www.google.com/maps/place/Attractiepark+Slagharen",website:"https://www.slagharen.com",cost:"ab 24 € / Person",openHours:"saisonal (Apr–Okt)",description:"Wild-West-Freizeitpark in den Niederlanden mit großem Wasserpark, Ponyreiten und vielen Kinderattraktionen.",weather:"outdoor"},
+  {id:85,name:"Freizeit-Land Geiselwind",type:"Freizeitpark",emoji:"🎠",address:"Freizeitland 1, 96160 Geiselwind",distanceKm:390,minAge:0,maxAge:99,googleRating:4.2,googleMapsUrl:"https://www.google.com/maps/place/Freizeitland+Geiselwind",website:"https://www.freizeit-land.de",cost:"ab 22 € Kind · 28 € Erw.",openHours:"Apr–Okt (saisonal)",description:"Familienfreizeitpark in Bayern mit Wildwasserbahn, Achterbahnen, Märchenwald und großem Kinderprogramm.",weather:"outdoor"},
 ];
 
 // State
@@ -1288,6 +1331,8 @@ const CITIES=[
 ];
 
 // ════════════════════════ LOCATION SEARCH STATE ══════════════════════
+let sortState = { key: 'match', dir: 1 }; // key, dir: 1=asc/-1=desc
+
 let locState = {
   text: 'Moers',
   plz: '47443',
@@ -1469,6 +1514,66 @@ function addFromSearch(idx){
   toast('✓ '+v.name+' zur Liste hinzugefügt');
 }
 
+// ════════════════════════ SORT ══════════════════════════════════════
+function setSort(key){
+  if(sortState.key===key){
+    sortState.dir*=-1; // toggle direction
+  } else {
+    sortState.key=key;
+    sortState.dir=key==='rating'?-1:1; // rating defaults desc
+  }
+  // Update button states
+  ['match','dist','rating','alpha','type','free'].forEach(k=>{
+    const btn=document.getElementById('sb-'+k);
+    if(!btn)return;
+    btn.classList.toggle('on',k===sortState.key);
+    const dirEl=btn.querySelector('.sort-dir');
+    if(k===sortState.key){
+      if(!dirEl){
+        const sp=document.createElement('span');
+        sp.className='sort-dir';
+        sp.textContent=sortState.dir===1?' ↑':' ↓';
+        btn.appendChild(sp);
+      } else {
+        dirEl.textContent=sortState.dir===1?' ↑':' ↓';
+      }
+    } else {
+      if(dirEl) dirEl.remove();
+    }
+  });
+  renderDiscover();
+}
+
+function applySort(list){
+  const{key,dir}=sortState;
+  const ord={good:0,ok:1,out:2};
+  return [...list].sort((a,b)=>{
+    let cmp=0;
+    switch(key){
+      case 'match':
+        cmp=ord[ageMatch(a)]-ord[ageMatch(b)];
+        if(cmp===0) cmp=a.distanceKm-b.distanceKm;
+        break;
+      case 'dist':
+        cmp=a.distanceKm-b.distanceKm; break;
+      case 'rating':
+        cmp=b.googleRating-a.googleRating; return cmp; // always desc
+      case 'alpha':
+        cmp=a.name.localeCompare(b.name,'de'); break;
+      case 'type':
+        cmp=a.type.localeCompare(b.type,'de');
+        if(cmp===0) cmp=a.distanceKm-b.distanceKm;
+        break;
+      case 'free':
+        const fa=isFree(a)?0:1, fb=isFree(b)?0:1;
+        cmp=fa-fb;
+        if(cmp===0) cmp=a.distanceKm-b.distanceKm;
+        break;
+    }
+    return cmp*dir;
+  });
+}
+
 // ════════════════════════ OVERRIDE renderDiscover to prepend SR cards ════
 const _renderDiscoverOrig=renderDiscover;
 // patch renderDiscover to also show SR cards
@@ -1478,8 +1583,7 @@ function renderDiscover(){
   if(S.typeFilter==='fav')  list=list.filter(v=>S.favorites.includes(v.id));
   else if(S.typeFilter==='free') list=list.filter(v=>isFree(v));
   else if(S.typeFilter!=='all')  list=list.filter(v=>v.type===S.typeFilter);
-  const ord={good:0,ok:1,out:2};
-  list.sort((a,b)=>(ord[ageMatch(a)]-ord[ageMatch(b)])||(a.distanceKm-b.distanceKm));
+  list=applySort(list);
 
   document.getElementById('stats-bar').innerHTML=
     `<div class="stat-item"><strong>${list.length}</strong> gespeichert</div>
