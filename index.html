@@ -223,6 +223,7 @@ textarea{resize:vertical;min-height:72px;}
 .cal-dot.freizeitpark{background:#F472B6;}.cal-dot.erlebnis{background:#FB923C;}
 .cal-dot.kirmes{background:#EF4444;}.cal-dot.aquapark{background:#22D3EE;}
 .cal-dot.spielplatz{background:#4ADE80;}
+.cal-dot.tierpark{background:#A78BFA;}
 .planned-sect{margin-top:.5rem;}
 .planned-sect h3{font-family:'Nunito',sans-serif;font-weight:800;font-size:.75rem;
   color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.65rem;}
@@ -439,6 +440,7 @@ textarea{resize:vertical;min-height:72px;}
         <button class="chip"           onclick="setType(this,'Aquapark')">&#x1F30A; Aquapark</button>
         <button class="chip"           onclick="setType(this,'Kirmes &amp; Events')">&#x1F3A1; Kirmes</button>
         <button class="chip"           onclick="setType(this,'Spielplatz')">&#x1F6DD; Spielplatz</button>
+        <button class="chip"           onclick="setType(this,'Tierpark')">&#x1F43E; Tierpark</button>
       </div>
       <div class="radius-row">
         <label>&#x1F4CD; Radius</label>
@@ -630,7 +632,7 @@ textarea{resize:vertical;min-height:72px;}
         <select id="vm-type">
           <option>Indoor Spielplatz</option><option>Zoo</option><option>Freizeitpark</option>
           <option>Erlebnis</option><option>Aquapark</option><option>Kirmes &amp; Events</option>
-          <option>Spielplatz</option><option>Sonstiges</option>
+          <option>Spielplatz</option><option>Tierpark</option><option>Sonstiges</option>
         </select></div>
       <div class="form-group"><label>Emoji</label>
         <input type="text" id="vm-emoji" placeholder="&#x1F3AA;" maxlength="4" style="text-align:center;font-size:1.4rem;padding:.5rem;"></div>
@@ -775,7 +777,115 @@ const DEF=[
   {id:82,name:"Serengeti-Park Hodenhagen",type:"Zoo",emoji:"🦓",address:"Serengeti-Park 1, 29693 Hodenhagen",distanceKm:330,minAge:0,maxAge:99,googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/place/Serengeti-Park+Hodenhagen",website:"https://www.serengeti-park.de",cost:"ab 24 € Kind · 32 € Erw.",openHours:"Apr–Okt tägl.",description:"Safari-Park mit Freigehegen zum Durchfahren – Löwen, Giraffen, Nashörner und über 50 Tierarten live erleben.",weather:"outdoor"},
   {id:83,name:"Bellewaerde Park (BE)",type:"Freizeitpark",emoji:"🎡",address:"Meenseweg 497, 8900 Ieper, Belgien",distanceKm:195,minAge:0,maxAge:99,googleRating:4.2,googleMapsUrl:"https://www.google.com/maps/place/Bellewaerde",website:"https://www.bellewaerde.be",cost:"ab 30 € / Person",openHours:"saisonal (Apr–Okt)",description:"Belgischer Freizeitpark mit Zoo, Wasserattraktionen und eigenem Kinderbereich – lohnendes Ausflugsziel ins Nachbarland.",weather:"outdoor"},
   {id:84,name:"Attractiepark Slagharen (NL)",type:"Freizeitpark",emoji:"🤠",address:"Zwarte Dijk 100, 7776 PJ Slagharen, NL",distanceKm:125,minAge:0,maxAge:99,googleRating:4.1,googleMapsUrl:"https://www.google.com/maps/place/Attractiepark+Slagharen",website:"https://www.slagharen.com",cost:"ab 24 € / Person",openHours:"saisonal (Apr–Okt)",description:"Wild-West-Freizeitpark in den Niederlanden mit großem Wasserpark, Ponyreiten und vielen Kinderattraktionen.",weather:"outdoor"},
-  {id:85,name:"Freizeit-Land Geiselwind",type:"Freizeitpark",emoji:"🎠",address:"Freizeitland 1, 96160 Geiselwind",distanceKm:390,minAge:0,maxAge:99,googleRating:4.2,googleMapsUrl:"https://www.google.com/maps/place/Freizeitland+Geiselwind",website:"https://www.freizeit-land.de",cost:"ab 22 € Kind · 28 € Erw.",openHours:"Apr–Okt (saisonal)",description:"Familienfreizeitpark in Bayern mit Wildwasserbahn, Achterbahnen, Märchenwald und großem Kinderprogramm.",weather:"outdoor"},
+  {id:85,name:"Freizeit-Land Geiselwind",type:"Freizeitpark",emoji:"🎠",address:"Freizeitland 1, 96160 Geiselwind",distanceKm:390,minAge:0,maxAge:99,googleRating:4.2,googleMapsUrl:"https://www.google.com/maps/place/Freizeitland+Geiselwind",website:"https://www.freizeit-land.de",cost:"ab 22 € Kind · 28 € Erw.",openHours:"Apr–Okt (saisonal)",description:"Familienfreizeitpark in Bayern mit Wildwasserbahn, Achterbahnen, Märchenwald und großem Kinderprogramm.",weather:"outdoor"},,
+  // ── Tierparks & Streichelzoos ──────────────────────────────────
+  {id:90,name:"Kalisto Kamp-Lintfort",type:"Tierpark",emoji:"🦋",
+   address:"Königstraße 4, 47475 Kamp-Lintfort",distanceKm:7,minAge:0,maxAge:99,
+   googleRating:4.4,googleMapsUrl:"https://www.google.com/maps/place/Kalisto+Kamp-Lintfort",
+   website:"https://www.kalisto.de",cost:"ab 7,50 € Kind · 9,50 € Erw.",
+   openHours:"Di–Fr 9:00–17:00 · Sa–So 10:00–18:00",
+   dates:null,
+   description:"Erlebnispark mit Schmetterlingshaus, Streichelzoo, Spielscheune und Abenteuerspielplatz – einer der nächsten Ausflugsorte von Moers.",
+   weather:"outdoor"},
+
+  {id:91,name:"Gertrudenhof Hürth",type:"Tierpark",emoji:"🐄",
+   address:"Alte Bonnstraße 1, 50354 Hürth",distanceKm:72,minAge:0,maxAge:99,
+   googleRating:4.5,googleMapsUrl:"https://www.google.com/maps/place/Gertrudenhof+Hürth",
+   website:"https://www.gertrudenhof.de",cost:"ab 5 € Kind · 7 € Erw.",
+   openHours:"Di–So 10:00–18:00 (saisonal)",
+   dates:null,
+   description:"Beliebter Erlebnisbauernhof bei Köln mit Streichelzoo, Traktorfahrten, Kürbisfest im Herbst und großem Kinderspielbereich.",
+   weather:"outdoor"},
+
+  {id:92,name:"Wildgehege Nettetal",type:"Tierpark",emoji:"🦌",
+   address:"Am Wildgehege, 41334 Nettetal",distanceKm:28,minAge:0,maxAge:99,
+   googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/search/Wildgehege+Nettetal",
+   website:"https://www.nettetal.de",cost:"kostenlos",
+   openHours:"täglich, Sonnenaufgang bis -untergang",
+   dates:null,
+   description:"Kostenfreies Wildgehege in Nettetal mit Damwild, Wildschweinen und einem kleinen Streichelzoo – ideal für einen entspannten Nachmittag.",
+   weather:"outdoor"},
+
+  {id:93,name:"Wildpark Grafenberger Wald Düsseldorf",type:"Tierpark",emoji:"🦊",
+   address:"Grafenberger Allee, 40237 Düsseldorf",distanceKm:33,minAge:0,maxAge:99,
+   googleRating:4.5,googleMapsUrl:"https://www.google.com/maps/place/Wildpark+Grafenberger+Wald",
+   website:"https://www.duesseldorf.de/wildpark",cost:"kostenlos",
+   openHours:"täglich 8:00–19:00 (Sommer), 8:00–17:00 (Winter)",
+   dates:null,
+   description:"Kostenfreier Wildpark mitten in Düsseldorf mit Rotwild, Wildschwein, Mufflons und einem tollen Waldspielplatz für Kinder.",
+   weather:"outdoor"},
+
+  {id:94,name:"Streichelzoo Rheinberg",type:"Tierpark",emoji:"🐑",
+   address:"Stadtgebiet Rheinberg",distanceKm:15,minAge:0,maxAge:10,
+   googleRating:4.1,googleMapsUrl:"https://www.google.com/maps/search/Streichelzoo+Rheinberg",
+   website:"#",cost:"kostenlos",
+   openHours:"täglich",
+   dates:null,
+   description:"Kleiner lokaler Streichelzoo mit Ziegen, Schafen und Hasen – perfekt für die Kleinsten zum direkten Tierkontakt.",
+   weather:"outdoor"},
+
+  {id:95,name:"Tierpark Kleve",type:"Tierpark",emoji:"🦒",
+   address:"Tiergartenstr. 1, 47533 Kleve",distanceKm:34,minAge:0,maxAge:99,
+   googleRating:4.4,googleMapsUrl:"https://www.google.com/maps/search/Tierpark+Kleve",
+   website:"https://www.tierpark-kleve.de",cost:"ab 3 € Kind · 5 € Erw.",
+   openHours:"täglich 9:00–18:00 (Winter bis 17:00)",
+   dates:null,
+   description:"Charmanter Tierpark in Kleve mit über 600 Tieren, Streichelgehege, Spielplatz und wunderschöner Lage im Tiergarten.",
+   weather:"outdoor"},
+
+  {id:96,name:"Wildpark Reuschenberg Neuss",type:"Tierpark",emoji:"🐗",
+   address:"Reuschenberger Str., 41466 Neuss",distanceKm:27,minAge:0,maxAge:99,
+   googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/search/Wildpark+Reuschenberg+Neuss",
+   website:"https://www.neuss.de",cost:"kostenlos",
+   openHours:"täglich, Sonnenaufgang bis -untergang",
+   dates:null,
+   description:"Kostenfreier Wildpark in Neuss mit Damwild, Wildschweinen und einem abwechslungsreichen Waldspaziergang für die ganze Familie.",
+   weather:"outdoor"},
+
+  {id:97,name:"Lütticher Hof Kevelaer (Ponyreiten)",type:"Tierpark",emoji:"🐴",
+   address:"Kevelaer Umgebung",distanceKm:38,minAge:2,maxAge:99,
+   googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/search/Ponyreiten+Kevelaer",
+   website:"#",cost:"ab 5 € / Runde",
+   openHours:"Sa–So 10:00–17:00 (saisonal)",
+   dates:null,
+   description:"Ponyhof am Niederrhein mit Ponyreiten für Kinder, Streicheltieren und ländlicher Atmosphäre – beliebt bei Familien aus der Region.",
+   weather:"outdoor"},
+
+  {id:98,name:"Erlebnisnaturhof Düffelward",type:"Tierpark",emoji:"🐓",
+   address:"Düffelward, 47559 Kranenburg",distanceKm:42,minAge:0,maxAge:99,
+   googleRating:4.2,googleMapsUrl:"https://www.google.com/maps/search/Bauernhof+Kranenburg+Düffelward",
+   website:"#",cost:"Eintritt frei · Aktivitäten kostenpflichtig",
+   openHours:"Sa–So (saisonal)",
+   dates:null,
+   description:"Naturnah gelegener Erlebnishof im Naturschutzgebiet Düffelward mit Hoftieren, Naturpfaden und Blick auf den Rhein.",
+   weather:"outdoor"},
+
+  {id:99,name:"Tierpark Hamm",type:"Tierpark",emoji:"🦁",
+   address:"Ostenallee 132, 59071 Hamm",distanceKm:68,minAge:0,maxAge:99,
+   googleRating:4.2,googleMapsUrl:"https://www.google.com/maps/place/Tierpark+Hamm",
+   website:"https://www.tierpark-hamm.de",cost:"ab 5 € Kind · 8 € Erw.",
+   openHours:"täglich 9:00–18:00 (Winter bis 17:00)",
+   dates:null,
+   description:"Familienfreundlicher Tierpark in Hamm mit über 1.000 Tieren, großem Streichelgehege, Spielplätzen und eigenem Schmetterlingshaus.",
+   weather:"outdoor"},
+
+  {id:100,name:"Vogelpark Avifauna (NL)",type:"Tierpark",emoji:"🦜",
+   address:"Hoorn 65, 1432 EE Aalsmeer, Niederlande",distanceKm:175,minAge:0,maxAge:99,
+   googleRating:4.4,googleMapsUrl:"https://www.google.com/maps/place/Avifauna",
+   website:"https://www.avifauna.nl",cost:"ab 16,50 € Kind · 22 € Erw.",
+   openHours:"täglich 9:00–18:00",
+   dates:null,
+   description:"Einer der schönsten Vogelparks Europas mit über 200 Vogelarten, Delfinariumshow, Flamingos und großem Kinderspielbereich.",
+   weather:"outdoor"},
+
+  {id:101,name:"Wildfreigehege Hellenthal (Eifel)",type:"Tierpark",emoji:"🐺",
+   address:"Wildgehege 1, 53940 Hellenthal",distanceKm:98,minAge:0,maxAge:99,
+   googleRating:4.4,googleMapsUrl:"https://www.google.com/maps/place/Wildfreigehege+Hellenthal",
+   website:"https://www.wildfreigehege-hellenthal.de",cost:"ab 5 € Kind · 7,50 € Erw.",
+   openHours:"täglich 9:00–18:00 (saisonal angepasst)",
+   dates:null,
+   description:"Naturnahes Wildgehege in der Eifel mit Wölfen, Bären, Luchsen und Wisenten auf großen Freiflächen – ein einzigartiges Naturerlebnis.",
+   weather:"outdoor"}
 ];
 
 // State
