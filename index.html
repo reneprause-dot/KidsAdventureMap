@@ -353,10 +353,28 @@ textarea{resize:vertical;min-height:72px;}
         style="width:min(260px,80vw);margin-bottom:.5rem;display:block;margin-left:auto;margin-right:auto;">
       <p style="color:var(--muted);font-size:.85rem;margin-top:.1rem;">Altersgerechte Ausflugsziele rund um Moers</p>
     </div>
-    <div class="form-group"><label>Name deines Kindes</label>
-      <input type="text" id="s-name" placeholder="z. B. Leo" maxlength="30"></div>
-    <div class="form-group"><label>Geburtsdatum</label>
-      <input type="date" id="s-bday"></div>
+    <div class="form-group">
+      <label>&#x1F3E0; Heim-PLZ / Wohnort</label>
+      <div style="position:relative;">
+        <input type="text" id="s-plz" placeholder="z. B. 47443 oder Moers"
+          autocomplete="off" oninput="onSetupPlzInput(this.value)"
+          onblur="setTimeout(()=>hideSetupAc(),200)">
+        <div id="s-plz-drop" style="position:absolute;top:100%;left:0;right:0;
+          background:#fff;border:2px solid var(--border);border-radius:var(--r-sm);
+          box-shadow:var(--shadow-lg);z-index:99;display:none;
+          max-height:180px;overflow-y:auto;"></div>
+      </div>
+    </div>
+    <div style="background:var(--bg);border-radius:var(--r-sm);padding:.875rem;margin-bottom:.5rem;">
+      <div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;
+        letter-spacing:.06em;margin-bottom:.65rem;">&#x1F476; Kinder</div>
+      <div id="s-children-list"></div>
+      <button onclick="addSetupChild()" style="width:100%;min-height:40px;padding:.5rem;
+        background:transparent;border:2px dashed var(--border);border-radius:var(--r-sm);
+        font-family:'Nunito',sans-serif;font-weight:700;font-size:.85rem;
+        color:var(--navy);cursor:pointer;margin-top:.35rem;">
+        &#xFF0B; Kind hinzuf&#xFC;gen</button>
+    </div>
     <button class="btn-primary" onclick="saveProfile()">Los geht&#x2019;s &#x2192;</button>
   </div>
 </div>
@@ -471,15 +489,37 @@ textarea{resize:vertical;min-height:72px;}
     <div class="scroll"><div class="settings-wrap">
 
       <div class="settings-sect">
-        <div class="ss-title">Kindprofil</div>
-        <div class="profile-disp">
-          <div class="prof-av" id="prof-av">?</div>
-          <div><div class="prof-name" id="prof-name">&#x2013;</div><div class="prof-age" id="prof-age">&#x2013;</div></div>
+        <div class="ss-title">&#x1F3E0; Wohnort (Radius-Zentrum)</div>
+        <div class="form-group">
+          <label>PLZ oder Ort</label>
+          <div style="position:relative;">
+            <input type="text" id="set-plz" placeholder="z. B. 47443 oder Moers"
+              autocomplete="off" oninput="onSetPlzInput(this.value)"
+              onblur="setTimeout(()=>hideSetPlzAc(),200)">
+            <div id="set-plz-drop" style="position:absolute;top:100%;left:0;right:0;
+              background:#fff;border:2px solid var(--border);border-radius:var(--r-sm);
+              box-shadow:var(--shadow-lg);z-index:99;display:none;
+              max-height:180px;overflow-y:auto;"></div>
+          </div>
         </div>
-        <div class="form-group"><label>Name</label><input type="text" id="set-name" placeholder="Name" maxlength="30"></div>
-        <div class="form-group"><label>Geburtsdatum</label><input type="date" id="set-bday"></div>
-        <button class="btn-primary" onclick="saveProfileSettings()">Profil speichern</button>
+        <p style="font-size:.75rem;color:var(--muted);line-height:1.5;margin-bottom:.75rem;">
+          Der Radius misst sich von diesem Standort. Entfernungen der vordefinierten Orte
+          sind N&#xE4;herungswerte aus der Niederrhein-Region.
+        </p>
+        <button class="btn-primary" style="margin-top:0;" onclick="saveHomePlz()">Wohnort speichern</button>
       </div>
+
+      <div class="settings-sect">
+        <div class="ss-title">&#x1F476; Meine Kinder</div>
+        <div id="settings-children-list"></div>
+        <button onclick="openAddChildModal()" style="display:flex;align-items:center;
+          justify-content:center;gap:.5rem;width:100%;min-height:var(--tap);padding:.75rem;
+          background:#fff;border:2px dashed var(--border);border-radius:var(--r-sm);
+          color:var(--navy);font-family:'Nunito',sans-serif;font-weight:800;
+          font-size:.9rem;cursor:pointer;margin-top:.5rem;">
+          &#xFF0B; Kind hinzuf&#xFC;gen
+        </button>
+      </div></div>
 
       <div class="settings-sect">
         <div class="ss-title">&#x1F916; Anthropic API-Key</div>
@@ -640,6 +680,21 @@ textarea{resize:vertical;min-height:72px;}
   </div>
 </div>
 
+<!-- Child Add/Edit Modal -->
+<div class="overlay" id="child-overlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="child-modal-title">Kind hinzuf&#xFC;gen</div>
+    <input type="hidden" id="child-edit-idx" value="">
+    <div class="form-group"><label>Name des Kindes</label>
+      <input type="text" id="child-name-input" placeholder="z. B. Leo" maxlength="30"></div>
+    <div class="form-group"><label>Geburtsdatum</label>
+      <input type="date" id="child-bday-input"></div>
+    <button class="btn-primary" onclick="saveChild()">Kind speichern</button>
+    <button class="btn-secondary" onclick="closeChildModal()">Abbrechen</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <script>
 const APP_VERSION='2.1.0';
@@ -702,7 +757,7 @@ const DEF=[
   {id:59,name:"Hülsenberger Teich Moers",type:"Spielplatz",emoji:"🦆",address:"Hülsenberger Teich, 47441 Moers",distanceKm:3,minAge:0,maxAge:12,googleRating:4.1,googleMapsUrl:"https://www.google.com/maps/search/Hülsenberger+Teich+Moers",website:"#",cost:"kostenlos",openHours:"täglich",description:"Idyllischer Teich mit Spielbereich – Enten füttern, Spielgeräte und Spazierwege.",weather:"outdoor"},
   {id:60,name:"Naturspielplatz Kamper Wald",type:"Spielplatz",emoji:"🌲",address:"Kamper Wald, 47445 Moers-Kapellen",distanceKm:5,minAge:2,maxAge:14,googleRating:4.5,googleMapsUrl:"https://www.google.com/maps/search/Kamper+Wald+Moers",website:"#",cost:"kostenlos",openHours:"täglich",description:"Naturnaher Waldspielplatz mit Barfußpfad, Baumstammklettern, Wasserlauf und Feuerstelle.",weather:"outdoor"},
   {id:61,name:"Freizeitpark Bettenkamp Moers",type:"Spielplatz",emoji:"⛹️",address:"Bettenkamp, 47447 Moers",distanceKm:4,minAge:0,maxAge:14,googleRating:4.0,googleMapsUrl:"https://www.google.com/maps/search/Spielplatz+Bettenkamp+Moers",website:"#",cost:"kostenlos",openHours:"täglich",description:"Freizeitanlage mit Bolzplatz, Basketballkorb, Spielgeräten und Picknickbereich.",weather:"outdoor"},
-  {id:62,name:"Naturerlebnispark Weeze",type:"Spielplatz",emoji:"✈️",address:"Nähe Weeze, 47652 Weeze",distanceKm:35,minAge:0,maxAge:12,googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/search/Spielplatz+Weeze+Naturerlebnispark",website:"#",cost:"kostenlos",openHours:"täglich",description:"Weitläufiger Naturerlebnispark nahe Weeze mit Abenteuerpfad, Kletterwald und Wasserpumpen.",weather:"outdoor"}
+  {id:62,name:"Naturerlebnispark Weeze",type:"Spielplatz",emoji:"✈️",address:"Nähe Weeze, 47652 Weeze",distanceKm:35,minAge:0,maxAge:12,googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/search/Spielplatz+Weeze+Naturerlebnispark",website:"#",cost:"kostenlos",openHours:"täglich",description:"Weitläufiger Naturerlebnispark nahe Weeze mit Abenteuerpfad, Kletterwald und Wasserpumpen.",weather:"outdoor"},
 
   // ── Weitere Ausflugsziele (100–500 km) ──
   {id:70,name:"Europa-Park Rust",type:"Freizeitpark",emoji:"🎢",address:"Europa-Park-Str. 2, 77977 Rust",distanceKm:320,minAge:2,maxAge:99,googleRating:4.6,googleMapsUrl:"https://www.google.com/maps/place/Europa-Park",website:"https://www.europapark.de",cost:"ab 57,50 € / Person",openHours:"tägl. 9:00–18:00 (saisonal variiert)",description:"Einer der besten Freizeitparks Europas mit 13 Themenwelten, über 100 Attraktionen und eigenem Kinderland 'Rulantica'.",weather:"outdoor"},
@@ -1199,6 +1254,27 @@ function deleteChild(i){
 function saveProfileSettings(){saveHomePlz();}
 
 
+function saveProxyUrl(){
+  const inp=document.getElementById('proxy-url-input');
+  const url=inp?inp.value.trim().replace(/\/+$/,''):'';
+  proxyUrl=url;
+  localStorage.setItem('kidsmap_proxy',url);
+  const st=document.getElementById('proxy-status');
+  if(st){st.textContent=url?'✓ Gespeichert':'Entfernt';st.className='api-status ok';}
+  toast('Proxy-URL gespeichert ✓');
+}
+async function testProxy(){
+  const inp=document.getElementById('proxy-url-input');
+  const url=inp?inp.value.trim().replace(/\/+$/,''):'';
+  if(!url){toast('Bitte Proxy-URL eingeben');return;}
+  const st=document.getElementById('proxy-status');
+  if(st){st.textContent='🔄 Teste…';st.className='api-status';}
+  try{
+    const r=await fetch(url+'/');
+    if(r.ok){if(st){st.textContent='✅ Proxy erreichbar!';st.className='api-status ok';}}
+    else{if(st){st.textContent='❌ Status '+r.status;st.className='api-status err';}}
+  }catch(e){if(st){st.textContent='❌ Nicht erreichbar';st.className='api-status err';}}
+}
 function saveApiKey(){
   const key=document.getElementById('api-key-input').value.trim();
   if(!key){toast('Bitte API-Key eingeben');return;}
@@ -1869,8 +1945,7 @@ load();
 setLogos();
 if(!S.profile){
   document.getElementById('setup-screen').classList.add('active');
-  const d=new Date();d.setFullYear(d.getFullYear()-3);
-  document.getElementById('s-bday').value=d.toISOString().split('T')[0];
+  // setup screen shown — child fields rendered by renderSetupChildren()
 }else{
   document.getElementById('app-screen').classList.add('active');
   document.getElementById('r-slider').value=S.radius;
