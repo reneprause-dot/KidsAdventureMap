@@ -360,6 +360,39 @@ textarea{resize:vertical;min-height:72px;}
 
   <!-- ENTDECKEN -->
   <div id="tab-discover" class="tab on">
+
+    <!-- Location Search Bar -->
+    <div class="loc-search-bar">
+      <div class="loc-search-wrap">
+        <div class="loc-input-wrap">
+          <span class="loc-input-icon">&#x1F4CD;</span>
+          <input type="text" class="loc-input" id="loc-input"
+            placeholder="PLZ oder Ort eingeben&#x2026;"
+            autocomplete="off" inputmode="search"
+            oninput="onLocInput(this.value)"
+            onfocus="onLocFocus()"
+            onblur="onLocBlur()">
+          <button class="loc-clear-btn" id="loc-clear-btn" onclick="clearLocSearch()">&#x2715;</button>
+          <div class="autocomplete-drop" id="ac-drop"></div>
+        </div>
+        <button class="btn-ai-search" id="ai-search-btn" onclick="runLocSearch()">
+          &#x1F916; Suchen
+        </button>
+      </div>
+    </div>
+
+    <!-- AI search loading indicator -->
+    <div class="ai-search-status" id="ai-search-status">
+      <div class="ai-spinner"></div>
+      <span id="ai-search-status-text">Claude sucht Ausflugsziele&#x2026;</span>
+    </div>
+
+    <!-- Search results banner -->
+    <div class="search-results-banner" id="sr-banner">
+      <strong id="sr-banner-text">KI-Ergebnisse</strong>
+      <button class="sr-close-btn" onclick="clearSearchResults()">&#x2715; schlie&#xDF;en</button>
+    </div>
+
     <div class="filter-bar">
       <div class="chip-row" id="chip-row">
         <button class="chip on"        onclick="setType(this,'all')">Alle</button>
