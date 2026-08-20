@@ -747,15 +747,63 @@ function save(){
     {profile:S.profile,venues:S.venues,planned:S.planned,favorites:S.favorites,radius:S.radius}));
 }
 
-// Profile
+// ════════════════════════ PROFILE (multi-child) ═══════════════
+
+let setupChildren=[{name:'',birthdate:''}];
+
+function renderSetupChildren(){
+  const el=document.getElementById('s-children-list');
+  if(!el)return;
+  el.innerHTML=setupChildren.map((c,i)=>`
+    <div style="display:flex;gap:.5rem;margin-bottom:.5rem;align-items:flex-start;">
+      <div style="flex:1;">
+        <input type="text" placeholder="Name (z. B. Leo)" maxlength="30"
+          value="${c.name}" oninput="setupChildren[${i}].name=this.value"
+          style="margin-bottom:.35rem;">
+        <input type="date" value="${c.birthdate}"
+          oninput="setupChildren[${i}].birthdate=this.value">
+      </div>
+      ${i>0?`<button onclick="removeSetupChild(${i})"
+        style="min-width:40px;min-height:40px;background:#FEF2F2;border:none;
+        border-radius:8px;color:#EF4444;font-size:1.1rem;cursor:pointer;margin-top:2px;">&#x2715;</button>`:''}
+    </div>`).join('');
+}
+function addSetupChild(){setupChildren.push({name:'',birthdate:''});renderSetupChildren();}
+function removeSetupChild(i){setupChildren.splice(i,1);renderSetupChildren();}
+
+function onSetupPlzInput(val){
+  const drop=document.getElementById('s-plz-drop');
+  if(!drop){return;}
+  if(val.length<2){drop.style.display='none';return;}
+  const q=val.toLowerCase(),isNum=/^\d/.test(q);
+  let matches=isNum?CITIES.filter(c=>c.plz.startsWith(q)):CITIES.filter(c=>c.name.toLowerCase().includes(q));
+  const seen=new Set();
+  matches=matches.filter(c=>{const k=c.name+c.plz;if(seen.has(k))return false;seen.add(k);return true;}).slice(0,6);
+  if(!matches.length){drop.style.display='none';return;}
+  drop.innerHTML=matches.map(c=>`<div style="padding:.5rem .875rem;cursor:pointer;display:flex;gap:.5rem;border-bottom:1px solid var(--border);"
+    onmousedown="selectSetupPlz('${c.plz}','${c.name.replace(/'/g,"\'")}')">
+    <span style="font-family:'Nunito',sans-serif;font-weight:800;color:var(--navy);min-width:46px;">${c.plz}</span>
+    <span>${c.name}</span></div>`).join('');
+  drop.style.display='block';
+}
+function selectSetupPlz(plz,name){
+  const el=document.getElementById('s-plz');
+  if(el){el.value=name+' ('+plz+')';el.dataset.plz=plz;el.dataset.city=name;}
+  document.getElementById('s-plz-drop').style.display='none';
+}
+function hideSetupAc(){const d=document.getElementById('s-plz-drop');if(d)d.style.display='none';}
+
 function saveProfile(){
-  const name=document.getElementById('s-name').value.trim();
-  const bday=document.getElementById('s-bday').value;
-  if(!name||!bday){toast('Bitte Name und Geburtsdatum eingeben');return;}
-  S.profile={name,birthdate:bday};
+  const plzInput=document.getElementById('s-plz');
+  const plz=plzInput?.dataset?.plz||'47443';
+  const city=plzInput?.dataset?.city||plzInput?.value?.trim()||'Moers';
+  const validChildren=setupChildren.filter(c=>c.name.trim()&&c.birthdate);
+  if(!validChildren.length){toast('Bitte mindestens ein Kind mit Name und Geburtsdatum eintragen');return;}
+  S.profile={homePlz:plz,homeCity:city,children:validChildren};
   if(!S.venues.length) S.venues=DEF.map(v=>({...v}));
   save();launchApp();
 }
+
 function getAge(bday){
   const b=new Date(bday),n=new Date();
   let y=n.getFullYear()-b.getFullYear(),m=n.getMonth()-b.getMonth();
@@ -763,17 +811,68 @@ function getAge(bday){
   return{years:Math.max(0,y),months:Math.max(0,m)};
 }
 function ageFloat(bday){const a=getAge(bday);return a.years+a.months/12;}
-function fmtAge(a){return a.years===0?a.months+' Mon.':a.years+' J.'+(a.months?' '+a.months+' M.':'');}
-function fmtAgeLg(a){return a.years===0?a.months+' Monate alt':a.years+' J. '+a.months+' Mon. alt';}
+function fmtAge(a){return a.years===0?a.months+' M.':a.years+' J.'+(a.months?' '+a.months+' M.':'');}
+function fmtAgeLg(a){return a.years===0?a.months+' Monate':a.years+' J. '+a.months+' Mon.';}
+
+function getChildren(){
+  if(!S.profile)return[];
+  if(S.profile.children&&S.profile.children.length)return S.profile.children;
+  if(S.profile.name&&S.profile.birthdate)return[{name:S.profile.name,birthdate:S.profile.birthdate}];
+  return[];
+}
+function getHomePlz(){return S.profile?.homePlz||'47443';}
+function getHomeCity(){return S.profile?.homeCity||'Moers';}
+
+function ageMatchAll(v){
+  const children=getChildren();
+  if(!children.length)return'good';
+  let best='out';
+  for(const c of children){
+    const af=ageFloat(c.birthdate);
+    if(af>=v.minAge&&af<=v.maxAge){
+      if(af>=v.minAge+0.5&&af<=v.maxAge-1)return'good';
+      best='ok';
+    }
+  }
+  return best;
+}
+function ageLabelAll(v){
+  const children=getChildren(),m=ageMatchAll(v);
+  if(m==='good'){
+    const fits=children.filter(c=>{const af=ageFloat(c.birthdate);return af>=v.minAge&&af<=v.maxAge;});
+    if(children.length>1&&fits.length<children.length)
+      return{cls:'ok',txt:'\u2713 '+fits.map(c=>c.name.split(' ')[0]).join(', ')};
+    return{cls:'good',txt:'\u2713 Altersgerecht'};
+  }
+  if(m==='ok'){
+    const fits=children.filter(c=>{const af=ageFloat(c.birthdate);return af>=v.minAge&&af<=v.maxAge;});
+    if(fits.length)return{cls:'ok',txt:'~ '+fits.map(c=>c.name.split(' ')[0]).join(', ')};
+    return{cls:'ok',txt:'~ Fast passend'};
+  }
+  return{cls:'out',txt:'Ab '+v.minAge+' J.'};
+}
+
 function updateHeader(){
   if(!S.profile)return;
-  const a=getAge(S.profile.birthdate);
-  document.getElementById('age-pill').textContent=fmtAge(a);
-  document.getElementById('hdr-av').textContent=S.profile.name[0].toUpperCase();
+  const children=getChildren();
+  if(!children.length)return;
+  const initials=children.map(c=>c.name[0].toUpperCase()).join('').substring(0,2);
+  document.getElementById('hdr-av').textContent=initials;
+  if(children.length===1){
+    const a=getAge(children[0].birthdate);
+    document.getElementById('age-pill').textContent=children[0].name+' \u00B7 '+fmtAge(a);
+  }else{
+    document.getElementById('age-pill').textContent=
+      children.map(c=>c.name.split(' ')[0]+' '+fmtAge(getAge(c.birthdate))).join(' \u00B7 ');
+    document.getElementById('age-pill').style.fontSize='.6rem';
+  }
 }
+
 
 // Navigation
 function launchApp(){
+  // init setup children render if needed
+  renderSetupChildren();
   document.getElementById('setup-screen').classList.remove('active');
   document.getElementById('app-screen').classList.add('active');
   document.getElementById('r-slider').value=S.radius;
@@ -786,6 +885,9 @@ function launchApp(){
   }
   updateHeader();renderDiscover();renderCalendar();renderManage();renderSettings();
   checkForUpdateSilent();
+  // Set search bar default to home location
+  const li=document.getElementById('loc-input');
+  if(li&&!li.value&&S.profile) li.placeholder='z. B. '+getHomeCity()+' oder andere PLZ…';
 }
 function switchTab(tab){
   ['discover','calendar','manage','settings'].forEach(t=>{
@@ -999,43 +1101,104 @@ function resetToDefaults(){
 // Settings
 function renderSettings(){
   if(!S.profile)return;
-  const a=getAge(S.profile.birthdate);
-  document.getElementById('prof-av').textContent=S.profile.name[0].toUpperCase();
-  document.getElementById('prof-name').textContent=S.profile.name;
-  document.getElementById('prof-age').textContent=fmtAgeLg(a);
-  document.getElementById('set-name').value=S.profile.name;
-  document.getElementById('set-bday').value=S.profile.birthdate;
+  const children=getChildren();
   document.getElementById('ver-tag').textContent=APP_VERSION;
   if(apiKey) document.getElementById('api-key-input').value=apiKey;
-}
-function saveProfileSettings(){
-  const name=document.getElementById('set-name').value.trim();
-  const bday=document.getElementById('set-bday').value;
-  if(!name||!bday){toast('Name und Geburtsdatum erforderlich');return;}
-  S.profile={name,birthdate:bday};
-  save();updateHeader();renderSettings();renderDiscover();toast('Profil gespeichert ✓');
+  if(proxyUrl){const pi=document.getElementById('proxy-url-input');if(pi) pi.value=proxyUrl;}
+  const plzEl=document.getElementById('set-plz');
+  if(plzEl){
+    plzEl.value=getHomeCity()+' ('+getHomePlz()+')';
+    plzEl.dataset.plz=getHomePlz();
+    plzEl.dataset.city=getHomeCity();
+  }
+  renderSettingsChildren();
 }
 
-// Proxy URL
-function saveProxyUrl(){
-  const url=document.getElementById('proxy-url-input').value.trim().replace(/\/+$/,'');
-  proxyUrl=url;localStorage.setItem('kidsmap_proxy',url);
-  document.getElementById('proxy-status').textContent=url?'✓ Proxy-URL gespeichert':'Proxy-URL entfernt';
-  document.getElementById('proxy-status').className='api-status ok';
-  toast('Proxy-URL gespeichert ✓');
+function renderSettingsChildren(){
+  const el=document.getElementById('settings-children-list');
+  if(!el)return;
+  const children=getChildren();
+  if(!children.length){el.innerHTML='<p style="font-size:.8rem;color:var(--muted);">Noch keine Kinder hinterlegt.</p>';return;}
+  el.innerHTML=children.map((c,i)=>{
+    const a=getAge(c.birthdate);
+    return`<div style="display:flex;align-items:center;gap:.65rem;padding:.65rem 0;border-bottom:1px solid var(--border);">
+      <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--navy));
+        display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif;
+        font-weight:900;font-size:1.1rem;color:#fff;flex-shrink:0;">${c.name[0].toUpperCase()}</div>
+      <div style="flex:1;">
+        <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:.95rem;">${c.name}</div>
+        <div style="font-size:.75rem;color:var(--muted);">${fmtAgeLg(a)} alt</div>
+      </div>
+      <button onclick="openEditChildModal(${i})" class="btn-ic btn-edit">✏️</button>
+      <button onclick="deleteChild(${i})" class="btn-ic btn-del">🗑️</button>
+    </div>`;
+  }).join('');
 }
-async function testProxy(){
-  const url=document.getElementById('proxy-url-input').value.trim().replace(/\/+$/,'');
-  if(!url){toast('Bitte zuerst Proxy-URL eingeben');return;}
-  const st=document.getElementById('proxy-status');
-  st.textContent='🔄 Teste Proxy…';st.className='api-status';
-  try{
-    const r=await fetch(url+'/');
-    if(r.ok){st.textContent='✅ Proxy erreichbar!';st.className='api-status ok';}
-    else{st.textContent='❌ Proxy antwortet mit '+r.status;st.className='api-status err';}
-  }catch(e){st.textContent='❌ Nicht erreichbar: '+e.message;st.className='api-status err';}
+
+function onSetPlzInput(val){
+  const drop=document.getElementById('set-plz-drop');
+  if(!drop)return;
+  if(val.length<2){drop.style.display='none';return;}
+  const q=val.toLowerCase(),isNum=/^\d/.test(q);
+  let matches=isNum?CITIES.filter(c=>c.plz.startsWith(q)):CITIES.filter(c=>c.name.toLowerCase().includes(q));
+  const seen=new Set();
+  matches=matches.filter(c=>{const k=c.name+c.plz;if(seen.has(k))return false;seen.add(k);return true;}).slice(0,6);
+  if(!matches.length){drop.style.display='none';return;}
+  drop.innerHTML=matches.map(c=>`<div class="ac-item" style="padding:.5rem .875rem;cursor:pointer;display:flex;gap:.5rem;"
+    onmousedown="selectSetPlz('${c.plz}','${c.name.replace(/'/g,"\'")}')">
+    <span style="font-family:'Nunito',sans-serif;font-weight:800;color:var(--navy);min-width:46px;">${c.plz}</span>
+    <span>${c.name}</span></div>`).join('');
+  drop.style.display='block';
 }
-// API Key
+function selectSetPlz(plz,name){
+  const el=document.getElementById('set-plz');
+  if(el){el.value=name+' ('+plz+')';el.dataset.plz=plz;el.dataset.city=name;}
+  hideSetPlzAc();
+}
+function hideSetPlzAc(){const d=document.getElementById('set-plz-drop');if(d)d.style.display='none';}
+function saveHomePlz(){
+  const el=document.getElementById('set-plz');if(!el)return;
+  const plz=el.dataset.plz||el.value.trim()||'47443';
+  const city=el.dataset.city||el.value.trim()||'Moers';
+  if(!S.profile)S.profile={children:[]};
+  S.profile.homePlz=plz;S.profile.homeCity=city;
+  save();toast('Wohnort gespeichert: '+city+' ('+plz+')');
+}
+function openAddChildModal(){
+  document.getElementById('child-modal-title').textContent='Kind hinzuf\u00FCgen';
+  document.getElementById('child-edit-idx').value='';
+  document.getElementById('child-name-input').value='';
+  document.getElementById('child-bday-input').value='';
+  document.getElementById('child-overlay').classList.add('open');
+}
+function openEditChildModal(i){
+  const c=getChildren()[i];if(!c)return;
+  document.getElementById('child-modal-title').textContent='Kind bearbeiten';
+  document.getElementById('child-edit-idx').value=i;
+  document.getElementById('child-name-input').value=c.name;
+  document.getElementById('child-bday-input').value=c.birthdate;
+  document.getElementById('child-overlay').classList.add('open');
+}
+function closeChildModal(){document.getElementById('child-overlay').classList.remove('open');}
+function saveChild(){
+  const name=document.getElementById('child-name-input').value.trim();
+  const bday=document.getElementById('child-bday-input').value;
+  if(!name||!bday){toast('Name und Geburtsdatum erforderlich');return;}
+  if(!S.profile)S.profile={homePlz:'47443',homeCity:'Moers',children:[]};
+  if(!S.profile.children)S.profile.children=[];
+  const idx=document.getElementById('child-edit-idx').value;
+  if(idx!==''){S.profile.children[parseInt(idx)]={name,birthdate:bday};toast('Kind aktualisiert ✓');}
+  else{S.profile.children.push({name,birthdate:bday});toast(name+' hinzugef\u00FCgt ✓');}
+  save();closeChildModal();renderSettings();updateHeader();renderDiscover();
+}
+function deleteChild(i){
+  if(!confirm('Kind wirklich entfernen?'))return;
+  S.profile.children.splice(i,1);
+  save();renderSettings();updateHeader();renderDiscover();toast('Kind entfernt');
+}
+function saveProfileSettings(){saveHomePlz();}
+
+
 function saveApiKey(){
   const key=document.getElementById('api-key-input').value.trim();
   if(!key){toast('Bitte API-Key eingeben');return;}
@@ -1179,7 +1342,7 @@ function toast(msg){
 }
 
 // Close overlays on backdrop tap
-['plan-overlay','venue-overlay','ai-overlay'].forEach(id=>{
+['plan-overlay','venue-overlay','ai-overlay','child-overlay'].forEach(id=>{
   document.getElementById(id).addEventListener('click',function(e){
     if(e.target===this)this.classList.remove('open');
   });
@@ -1402,8 +1565,12 @@ function clearLocSearch(){
 
 // ════════════════════════ AI LOCATION SEARCH ═════════════════════════
 async function runLocSearch(){
-  const rawInput=document.getElementById('loc-input').value.trim();
-  if(!rawInput){toast('Bitte Ort oder PLZ eingeben');return;}
+  let rawInput=document.getElementById('loc-input').value.trim();
+  if(!rawInput){
+    // Use home PLZ as default
+    rawInput=getHomeCity()+' '+getHomePlz();
+    document.getElementById('loc-input').value=rawInput;
+  }
   if(!apiKey){
     toast('Bitte zuerst API-Key in den Einstellungen speichern');
     switchTab('settings');return;
@@ -1421,9 +1588,12 @@ async function runLocSearch(){
 
   // Build age context
   let ageCtx='';
-  if(S.profile){
-    const a=getAge(S.profile.birthdate);
-    ageCtx=`Das Kind ist ${a.years} Jahre und ${a.months} Monate alt.`;
+  const kids=getChildren();
+  if(kids.length===1){
+    const a=getAge(kids[0].birthdate);
+    ageCtx=`Das Kind "${kids[0].name}" ist ${a.years} Jahre und ${a.months} Monate alt.`;
+  } else if(kids.length>1){
+    ageCtx='Die Kinder: '+kids.map(c=>{const a=getAge(c.birthdate);return`"${c.name}" (${a.years} J. ${a.months} M.)`;}).join(', ')+'. Bitte Orte für alle Altersgruppen berücksichtigen.';
   }
 
   const prompt=`Du bist ein Assistent für eine deutsche Familien-Ausflug-App.
@@ -1551,7 +1721,7 @@ function applySort(list){
     let cmp=0;
     switch(key){
       case 'match':
-        cmp=ord[ageMatch(a)]-ord[ageMatch(b)];
+        cmp=ord[ageMatchAll(a)]-ord[ageMatchAll(b)];
         if(cmp===0) cmp=a.distanceKm-b.distanceKm;
         break;
       case 'dist':
@@ -1595,7 +1765,7 @@ function renderDiscover(){
   let srHtml='';
   if(locState.searchResults.length&&S.typeFilter==='all'){
     srHtml=locState.searchResults.map((v,i)=>{
-      const al=ageLabel(v);
+      const al=ageLabelAll(v);
       const added=locState.savedIds.has(i);
       const datesHtml=v.dates?`<div class="dates-strip">📅 ${v.dates}</div>`:'';
       const wCls=v.weather==='indoor'?'indoor':'outdoor';
@@ -1638,7 +1808,7 @@ function renderDiscover(){
 
   // Saved venue cards
   const savedHtml=list.map((v,i)=>{
-    const al=ageLabel(v);
+    const al=ageLabelAll(v);
     const isFav=S.favorites.includes(v.id);
     const webBtn=v.website&&v.website!=='#'?`<a class="btn-map" href="${v.website}" target="_blank" rel="noopener" style="background:var(--navy-l);">🌐 Web</a>`:'';
     const datesHtml=v.dates?`<div class="dates-strip">📅 ${v.dates}</div>`:'';
