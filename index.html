@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1B3A5C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KidsMap">
+<meta name="mobile-web-app-capable" content="yes">
+<title>KidsMap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#1B3A5C;--navy-l:#264D78;--coral:#FF6535;--teal:#3DBFB8;
+  --yellow:#FFD166;--bg:#EFF4F9;--text:#1A2B3C;--muted:#6B7E8D;--border:#DDE5EE;
+  --r:16px;--r-sm:10px;--shadow:0 2px 14px rgba(27,58,92,.09);
+  --shadow-lg:0 8px 36px rgba(27,58,92,.18);
+  --safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);
+  --safe-left:env(safe-area-inset-left,0px);--safe-right:env(safe-area-inset-right,0px);
+  --hdr-h:60px;--nav-h:calc(60px + var(--safe-bottom));--tap:48px;
+}
+html{height:100%;touch-action:manipulation;}
+body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;font-size:16px;
+  color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased;
+  -webkit-text-size-adjust:100%;}
+.screen{position:fixed;inset:0;display:none;flex-direction:column;background:var(--bg);}
+.screen.active{display:flex;}
+
+/* Setup */
+#setup-screen{background:linear-gradient(145deg,#0F2744 0%,#1B5298 55%,#1B7A6C 100%);
+  align-items:center;justify-content:center;
+  padding:max(1.5rem,var(--safe-top)) 1.25rem max(1.5rem,var(--safe-bottom));overflow-y:auto;}
+.setup-card{background:#fff;border-radius:24px;padding:2rem 1.5rem;
+  width:100%;max-width:380px;box-shadow:var(--shadow-lg);}
+.setup-logo{text-align:center;margin-bottom:1.75rem;}
+.setup-logo .logo-big{font-size:clamp(2.5rem,10vw,3.5rem);display:block;margin-bottom:.4rem;}
+.setup-logo h1{font-family:'Nunito',sans-serif;font-weight:900;
+  font-size:clamp(1.5rem,6vw,1.9rem);color:var(--navy);letter-spacing:-.02em;}
+.setup-logo p{color:var(--muted);font-size:.875rem;margin-top:.25rem;}
+
+/* Forms */
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;font-size:.72rem;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;}
+input,select,textarea{width:100%;padding:.75rem 1rem;border:2px solid var(--border);
+  border-radius:var(--r-sm);font-family:'Inter',sans-serif;font-size:16px;
+  color:var(--text);background:#fff;transition:border-color .2s;
+  outline:none;-webkit-appearance:none;appearance:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--teal);}
+textarea{resize:vertical;min-height:72px;}
+
+/* Buttons */
+.btn-primary{display:flex;align-items:center;justify-content:center;width:100%;
+  min-height:var(--tap);padding:.75rem 1rem;
+  background:linear-gradient(135deg,var(--navy),var(--navy-l));color:#fff;border:none;
+  border-radius:var(--r-sm);font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;
+  cursor:pointer;margin-top:1.25rem;transition:opacity .15s;-webkit-tap-highlight-color:transparent;}
+.btn-primary:active{opacity:.85;}
+.btn-secondary{display:flex;align-items:center;justify-content:center;width:100%;
+  min-height:var(--tap);padding:.6rem 1rem;background:var(--bg);color:var(--navy);
+  border:2px solid var(--border);border-radius:var(--r-sm);font-family:'Nunito',sans-serif;
+  font-weight:700;font-size:.9rem;cursor:pointer;margin-top:.5rem;
+  transition:background .15s;-webkit-tap-highlight-color:transparent;}
+.btn-ai{display:flex;align-items:center;justify-content:center;gap:.4rem;width:100%;
+  min-height:var(--tap);padding:.6rem 1rem;
+  background:linear-gradient(135deg,#7C3AED,#5B21B6);color:#fff;border:none;
+  border-radius:var(--r-sm);font-family:'Nunito',sans-serif;font-weight:800;font-size:.85rem;
+  cursor:pointer;margin-top:.5rem;transition:opacity .15s;-webkit-tap-highlight-color:transparent;}
+.btn-ai:active{opacity:.85;}
+.btn-ai:disabled{opacity:.5;cursor:not-allowed;}
+
+/* Header */
+.hdr{background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;
+  padding-left:max(1rem,var(--safe-left));padding-right:max(1rem,var(--safe-right));
+  padding-top:var(--safe-top);height:calc(var(--hdr-h) + var(--safe-top));
+  flex-shrink:0;box-shadow:0 1px 6px rgba(0,0,0,.05);z-index:10;gap:.75rem;}
+.hdr-logo{font-family:'Nunito',sans-serif;font-weight:900;font-size:1.3rem;
+  color:var(--navy);flex:1;letter-spacing:-.02em;}
+.hdr-logo span{color:var(--coral);}
+.age-pill{background:linear-gradient(135deg,var(--teal),#2AA8A0);color:#fff;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:.72rem;
+  padding:.25rem .7rem;border-radius:20px;white-space:nowrap;flex-shrink:0;}
+.hdr-avatar{width:38px;height:38px;border-radius:50%;
+  background:linear-gradient(135deg,var(--navy),var(--navy-l));
+  display:flex;align-items:center;justify-content:center;color:#fff;
+  font-family:'Nunito',sans-serif;font-weight:900;font-size:1rem;
+  cursor:pointer;flex-shrink:0;box-shadow:0 2px 8px rgba(27,58,92,.3);
+  -webkit-tap-highlight-color:transparent;}
+
+/* Update banner */
+.upd-banner{background:linear-gradient(135deg,#7C3AED,#5B21B6);color:#fff;
+  padding:.6rem max(1rem,var(--safe-left));display:none;align-items:center;
+  gap:.65rem;flex-shrink:0;font-size:.82rem;}
+.upd-banner.show{display:flex;}
+.upd-banner strong{font-family:'Nunito',sans-serif;font-weight:800;flex:1;}
+.upd-banner button{background:rgba(255,255,255,.2);border:none;color:#fff;
+  padding:.35rem .8rem;border-radius:8px;font-family:'Nunito',sans-serif;
+  font-weight:700;font-size:.78rem;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+
+/* Bottom Nav */
+.bot-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);
+  padding-bottom:var(--safe-bottom);padding-left:var(--safe-left);padding-right:var(--safe-right);
+  background:#fff;border-top:1px solid var(--border);
+  display:grid;grid-template-columns:repeat(4,1fr);z-index:50;
+  box-shadow:0 -2px 14px rgba(0,0,0,.07);}
+.nav-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:.2rem;cursor:pointer;border:none;background:none;color:var(--muted);
+  transition:color .2s;padding:.4rem .25rem;-webkit-tap-highlight-color:transparent;min-height:60px;}
+.nav-btn.active{color:var(--navy);}
+.nav-btn .ni{font-size:1.35rem;line-height:1;transition:transform .2s;}
+.nav-btn.active .ni{transform:scale(1.12);}
+.nav-btn .nl{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+
+/* Tabs */
+.tab{display:none;flex-direction:column;flex:1;overflow:hidden;}
+.tab.on{display:flex;}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain;padding-bottom:calc(var(--nav-h) + 1rem);}
+
+/* Filter bar */
+.filter-bar{background:#fff;border-bottom:1px solid var(--border);
+  padding:.65rem max(1rem,var(--safe-left)) .6rem;
+  display:flex;flex-direction:column;gap:.5rem;flex-shrink:0;}
+.chip-row{display:flex;gap:.4rem;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;padding-bottom:2px;}
+.chip-row::-webkit-scrollbar{display:none;}
+.chip{flex-shrink:0;padding:.35rem .8rem;border-radius:20px;border:2px solid var(--border);
+  background:#fff;font-size:.8rem;font-weight:700;cursor:pointer;color:var(--muted);
+  white-space:nowrap;min-height:36px;display:flex;align-items:center;
+  transition:all .18s;-webkit-tap-highlight-color:transparent;}
+.chip.on{border-color:var(--navy);background:var(--navy);color:#fff;}
+.chip.fav-chip.on{border-color:#EC4899;background:#EC4899;}
+.chip.free-chip.on{border-color:#16A34A;background:#16A34A;}
+.radius-row{display:flex;align-items:center;gap:.65rem;}
+.radius-row label{font-size:.75rem;font-weight:700;color:var(--muted);white-space:nowrap;}
+.radius-row input[type=range]{flex:1;height:4px;accent-color:var(--navy);cursor:pointer;}
+.radius-val{font-family:'Nunito',sans-serif;font-weight:800;font-size:.85rem;
+  color:var(--navy);min-width:48px;text-align:right;}
+
+/* Stats bar */
+.stats-bar{background:#fff;border-bottom:1px solid var(--border);
+  padding:.45rem max(1rem,var(--safe-left));display:flex;gap:1.25rem;flex-shrink:0;}
+.stat-item{display:flex;align-items:center;gap:.35rem;font-size:.75rem;color:var(--muted);}
+.stat-item strong{font-family:'Nunito',sans-serif;font-weight:900;font-size:.9rem;color:var(--navy);}
+
+/* Venue cards */
+.venues-grid{padding:.875rem max(1rem,var(--safe-left));
+  display:flex;flex-direction:column;gap:.875rem;}
+@media(min-width:540px){.venues-grid{display:grid;grid-template-columns:1fr 1fr;}}
+.vc{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);
+  overflow:hidden;animation:fadeUp .3s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.vc-img{height:110px;display:flex;align-items:center;justify-content:center;
+  font-size:3.5rem;position:relative;}
+.vc-type-badge{position:absolute;top:9px;right:9px;background:rgba(255,255,255,.92);
+  color:var(--navy);font-size:.62rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:.05em;padding:.2rem .55rem;border-radius:7px;}
+.weather-badge{position:absolute;bottom:9px;left:9px;font-size:.65rem;font-weight:800;
+  padding:.2rem .55rem;border-radius:7px;}
+.weather-badge.indoor{background:rgba(96,165,250,.9);color:#fff;}
+.weather-badge.outdoor{background:rgba(52,211,153,.9);color:#fff;}
+.fav-btn{position:absolute;top:9px;left:9px;width:32px;height:32px;border-radius:50%;
+  background:rgba(255,255,255,.9);border:none;cursor:pointer;font-size:1rem;
+  display:flex;align-items:center;justify-content:center;
+  -webkit-tap-highlight-color:transparent;transition:transform .2s;}
+.fav-btn:active{transform:scale(1.2);}
+.vc-body{padding:.875rem;}
+.vc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;margin-bottom:.4rem;}
+.vc-name{font-family:'Nunito',sans-serif;font-weight:900;font-size:1rem;color:var(--text);line-height:1.25;}
+.vc-rating{display:flex;align-items:center;gap:.2rem;flex-shrink:0;}
+.vc-stars{color:var(--yellow);font-size:.85rem;}
+.vc-rval{font-family:'Nunito',sans-serif;font-weight:800;font-size:.85rem;color:var(--text);}
+.vc-meta{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.5rem;align-items:center;}
+.mpill{display:flex;align-items:center;gap:.2rem;font-size:.75rem;color:var(--muted);}
+.age-badge{font-size:.68rem;font-weight:800;padding:.2rem .5rem;border-radius:7px;
+  text-transform:uppercase;letter-spacing:.03em;}
+.age-badge.good{background:#D1FAE5;color:#065F46;}
+.age-badge.ok{background:#FEF3C7;color:#92400E;}
+.age-badge.out{background:#FEE2E2;color:#991B1B;}
+.dates-strip{background:linear-gradient(135deg,#FFF1F2,#FFE4E6);border:1px solid #FECDD3;
+  border-radius:8px;padding:.38rem .7rem;font-size:.78rem;font-weight:700;color:#9F1239;
+  display:flex;align-items:center;gap:.35rem;margin-bottom:.55rem;}
+.cost-strip{background:linear-gradient(135deg,#FFF7ED,#FEF9EE);border:1px solid #FDE68A;
+  border-radius:8px;padding:.38rem .7rem;font-size:.78rem;font-weight:700;color:#92400E;
+  display:flex;align-items:center;gap:.3rem;margin-bottom:.65rem;}
+.vc-desc{font-size:.8rem;color:var(--muted);line-height:1.55;margin-bottom:.75rem;}
+.vc-actions{display:flex;gap:.4rem;flex-wrap:wrap;}
+.btn-map,.btn-plan,.btn-upd{flex:1;min-width:60px;min-height:var(--tap);padding:0 .5rem;
+  border:none;border-radius:var(--r-sm);font-family:'Nunito',sans-serif;font-weight:800;
+  font-size:.76rem;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  gap:.3rem;text-decoration:none;transition:opacity .15s;-webkit-tap-highlight-color:transparent;}
+.btn-map{background:var(--navy);color:#fff;}
+.btn-plan{background:var(--teal);color:#fff;}
+.btn-upd{background:#7C3AED;color:#fff;}
+.btn-map:active,.btn-plan:active,.btn-upd:active{opacity:.8;}
+.empty-state{text-align:center;padding:3rem 2rem;color:var(--muted);}
+.empty-state .ei{font-size:3rem;margin-bottom:.875rem;}
+.empty-state h3{font-family:'Nunito',sans-serif;font-weight:900;font-size:1.1rem;color:var(--text);margin-bottom:.4rem;}
+
+/* Calendar */
+.cal-wrap{padding:.875rem max(1rem,var(--safe-left));}
+.cal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem;}
+.cal-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:1.2rem;color:var(--navy);}
+.cal-nav{width:var(--tap);height:var(--tap);border-radius:50%;border:2px solid var(--border);
+  background:#fff;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;
+  justify-content:center;color:var(--navy);font-weight:800;-webkit-tap-highlight-color:transparent;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:.875rem;}
+.cal-dh{text-align:center;font-size:.62rem;font-weight:800;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.05em;padding:.35rem 0;}
+.cal-day{min-height:52px;background:#fff;border-radius:9px;padding:4px 2px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;-webkit-tap-highlight-color:transparent;}
+.cal-day:active{background:#E8F4FD;}
+.cal-day.empty{background:transparent;cursor:default;pointer-events:none;}
+.cal-day.today .cal-dn{background:var(--coral);color:#fff;}
+.cal-dn{font-family:'Nunito',sans-serif;font-weight:800;font-size:.8rem;color:var(--text);
+  width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.cal-dots{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;margin-top:2px;}
+.cal-dot{width:6px;height:6px;border-radius:50%;}
+.cal-dot.zoo{background:#34D399;}.cal-dot.indoor{background:#60A5FA;}
+.cal-dot.freizeitpark{background:#F472B6;}.cal-dot.erlebnis{background:#FB923C;}
+.cal-dot.kirmes{background:#EF4444;}.cal-dot.aquapark{background:#22D3EE;}
+.cal-dot.spielplatz{background:#4ADE80;}
+.planned-sect{margin-top:.5rem;}
+.planned-sect h3{font-family:'Nunito',sans-serif;font-weight:800;font-size:.75rem;
+  color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.65rem;}
+.pi{background:#fff;border-radius:var(--r-sm);padding:.75rem .875rem;margin-bottom:.4rem;
+  display:flex;align-items:center;gap:.65rem;box-shadow:var(--shadow);}
+.pi-emoji{font-size:1.5rem;flex-shrink:0;}
+.pi-info{flex:1;min-width:0;}
+.pi-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:.9rem;color:var(--text);}
+.pi-date{font-size:.75rem;color:var(--muted);}
+.pi-note{font-size:.73rem;color:var(--teal);font-style:italic;margin-top:.1rem;}
+.pi-del{min-width:var(--tap);min-height:var(--tap);background:none;border:none;color:#EF4444;
+  cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;}
+
+/* Manage */
+.manage-wrap{padding:.875rem max(1rem,var(--safe-left));}
+.mi{background:#fff;border-radius:var(--r-sm);padding:.8rem .875rem;margin-bottom:.45rem;
+  display:flex;align-items:center;gap:.75rem;box-shadow:var(--shadow);}
+.mi-emoji{font-size:1.6rem;flex-shrink:0;}
+.mi-info{flex:1;min-width:0;}
+.mi-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:.9rem;color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mi-sub{font-size:.73rem;color:var(--muted);}
+.mi-acts{display:flex;gap:.35rem;flex-shrink:0;}
+.btn-ic{width:var(--tap);height:var(--tap);border-radius:10px;border:none;cursor:pointer;
+  font-size:.9rem;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
+.btn-edit{background:#EFF6FF;color:var(--navy);}
+.btn-del{background:#FEF2F2;color:#EF4444;}
+.btn-add{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;
+  min-height:var(--tap);padding:.75rem;background:#fff;border:2px dashed var(--border);
+  border-radius:var(--r-sm);color:var(--navy);font-family:'Nunito',sans-serif;
+  font-weight:800;font-size:.9rem;cursor:pointer;margin-top:.5rem;
+  -webkit-tap-highlight-color:transparent;}
+.btn-add:active{border-color:var(--navy);background:#EFF6FF;}
+.reset-btn{display:flex;align-items:center;justify-content:center;width:100%;
+  min-height:var(--tap);background:transparent;border:none;color:#EF4444;
+  font-family:'Nunito',sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;margin-top:.5rem;}
+
+/* Settings */
+.settings-wrap{padding:.875rem max(1rem,var(--safe-left));}
+.settings-sect{background:#fff;border-radius:var(--r);padding:1rem;margin-bottom:.875rem;box-shadow:var(--shadow);}
+.ss-title{font-family:'Nunito',sans-serif;font-weight:800;font-size:.73rem;
+  text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.875rem;}
+.profile-disp{display:flex;align-items:center;gap:.875rem;margin-bottom:.875rem;}
+.prof-av{width:54px;height:54px;border-radius:50%;
+  background:linear-gradient(135deg,var(--teal),var(--navy));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Nunito',sans-serif;font-weight:900;font-size:1.5rem;color:#fff;flex-shrink:0;}
+.prof-name{font-family:'Nunito',sans-serif;font-weight:900;font-size:1.05rem;color:var(--text);}
+.prof-age{font-size:.82rem;color:var(--muted);margin-top:.1rem;}
+.api-key-wrap{position:relative;}
+.api-key-wrap input{padding-right:3rem;}
+.key-toggle{position:absolute;right:.75rem;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;font-size:1rem;color:var(--muted);padding:.25rem;}
+.api-status{font-size:.75rem;margin-top:.4rem;font-weight:600;}
+.api-status.ok{color:#16A34A;}.api-status.err{color:#DC2626;}
+.ver-tag{display:inline-block;background:var(--bg);border:1px solid var(--border);
+  border-radius:6px;padding:.1rem .5rem;font-size:.72rem;font-weight:700;color:var(--navy);}
+
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .25s;}
+.overlay.open{opacity:1;pointer-events:all;}
+.sheet{background:#fff;border-radius:24px 24px 0 0;
+  padding:1.25rem max(1.25rem,var(--safe-left));
+  padding-bottom:max(1.25rem,var(--safe-bottom));
+  width:100%;max-width:480px;max-height:92dvh;overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);}
+.overlay.open .sheet{transform:translateY(0);}
+.sheet-handle{width:40px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 1.1rem;}
+.sheet-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:1.15rem;color:var(--text);margin-bottom:1.1rem;}
+.section-label{font-size:.72rem;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;}
+.dp-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin:.65rem 0;}
+.dp-dh{text-align:center;font-size:.62rem;font-weight:800;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.04em;padding:.3rem 0;}
+.dp-cell{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-family:'Nunito',sans-serif;font-weight:700;font-size:.82rem;cursor:pointer;
+  border:none;background:none;color:var(--text);min-height:36px;-webkit-tap-highlight-color:transparent;}
+.dp-cell:active:not(.dp-empty){background:#EFF6FF;}
+.dp-cell.dp-sel{background:var(--navy);color:#fff;}
+.dp-cell.dp-today{border:2px solid var(--coral);}
+.dp-cell.dp-empty{cursor:default;pointer-events:none;}
+.plan-venue-chip{font-family:'Nunito',sans-serif;font-weight:800;font-size:.95rem;color:var(--text);
+  padding:.65rem .875rem;background:var(--bg);border-radius:var(--r-sm);margin-bottom:.875rem;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;}
+
+/* AI */
+.ai-response{background:#FAF5FF;border:1px solid #DDD6FE;border-radius:var(--r-sm);
+  padding:.875rem;margin:.875rem 0;font-size:.82rem;line-height:1.65;color:var(--text);
+  white-space:pre-wrap;word-break:break-word;min-height:80px;}
+.ai-loading{display:flex;align-items:center;gap:.5rem;color:#7C3AED;
+  font-family:'Nunito',sans-serif;font-weight:700;font-size:.85rem;padding:.5rem 0;}
+.ai-spinner{width:18px;height:18px;border:3px solid #DDD6FE;border-top-color:#7C3AED;
+  border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.toast{position:fixed;bottom:calc(var(--nav-h) + 1rem);left:50%;
+  transform:translateX(-50%) translateY(16px);background:var(--text);color:#fff;
+  padding:.55rem 1.25rem;border-radius:24px;font-family:'Nunito',sans-serif;
+  font-weight:800;font-size:.875rem;opacity:0;transition:opacity .25s,transform .25s;
+  z-index:400;white-space:nowrap;pointer-events:none;max-width:calc(100vw - 2rem);text-align:center;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div id="setup-screen" class="screen">
+  <div class="setup-card">
+    <div class="setup-logo">
+      <span class="logo-big">&#x1F5FA;&#xFE0F;</span>
+      <h1>KidsMap</h1>
+      <p>Altersgerechte Ausflugsziele rund um Moers</p>
+    </div>
+    <div class="form-group"><label>Name deines Kindes</label>
+      <input type="text" id="s-name" placeholder="z. B. Leo" maxlength="30"></div>
+    <div class="form-group"><label>Geburtsdatum</label>
+      <input type="date" id="s-bday"></div>
+    <button class="btn-primary" onclick="saveProfile()">Los geht&#x2019;s &#x2192;</button>
+  </div>
+</div>
+
+<div id="app-screen" class="screen">
+  <header class="hdr">
+    <div class="hdr-logo">Kids<span>Map</span></div>
+    <span class="age-pill" id="age-pill">&#x2013;</span>
+    <div class="hdr-avatar" id="hdr-av" onclick="switchTab('settings')">?</div>
+  </header>
+  <div class="upd-banner" id="upd-banner">
+    <strong>&#x1F195; Update verf&#xFC;gbar!</strong>
+    <button onclick="hardRefresh()">Jetzt aktualisieren</button>
+  </div>
+
+  <!-- ENTDECKEN -->
+  <div id="tab-discover" class="tab on">
+    <div class="filter-bar">
+      <div class="chip-row" id="chip-row">
+        <button class="chip on"        onclick="setType(this,'all')">Alle</button>
+        <button class="chip fav-chip"  onclick="setType(this,'fav')">&#x2B50; Favoriten</button>
+        <button class="chip free-chip" onclick="setType(this,'free')">&#x1F193; Kostenlos</button>
+        <button class="chip"           onclick="setType(this,'Indoor Spielplatz')">&#x1F3AA; Indoor</button>
+        <button class="chip"           onclick="setType(this,'Zoo')">&#x1F981; Zoo</button>
+        <button class="chip"           onclick="setType(this,'Freizeitpark')">&#x1F3A2; Freizeitpark</button>
+        <button class="chip"           onclick="setType(this,'Erlebnis')">&#x1F52D; Erlebnis</button>
+        <button class="chip"           onclick="setType(this,'Aquapark')">&#x1F30A; Aquapark</button>
+        <button class="chip"           onclick="setType(this,'Kirmes &amp; Events')">&#x1F3A1; Kirmes</button>
+        <button class="chip"           onclick="setType(this,'Spielplatz')">&#x1F6DD; Spielplatz</button>
+      </div>
+      <div class="radius-row">
+        <label>&#x1F4CD; Radius</label>
+        <input type="range" id="r-slider" min="5" max="150" step="5" value="30" oninput="setRadius(this.value)">
+        <span class="radius-val" id="r-val">30 km</span>
+      </div>
+    </div>
+    <div class="stats-bar" id="stats-bar"></div>
+    <div class="scroll"><div class="venues-grid" id="v-grid"></div></div>
+  </div>
+
+  <!-- KALENDER -->
+  <div id="tab-calendar" class="tab">
+    <div class="scroll"><div class="cal-wrap">
+      <div class="cal-hdr">
+        <button class="cal-nav" onclick="calNav(-1)">&#x2039;</button>
+        <div class="cal-title" id="cal-title">&#x2013;</div>
+        <button class="cal-nav" onclick="calNav(1)">&#x203A;</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="planned-sect">
+        <h3>Geplante Ausfluege</h3>
+        <div id="planned-list"></div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- VERWALTEN -->
+  <div id="tab-manage" class="tab">
+    <div class="scroll"><div class="manage-wrap">
+      <div id="manage-list"></div>
+      <button class="btn-add" onclick="openAddVenue()">&#xFF0B; Ort hinzuf&#xFC;gen</button>
+      <button class="reset-btn" onclick="resetToDefaults()">&#x21BA; Auf Standard zur&#xFC;cksetzen</button>
+    </div></div>
+  </div>
+
+  <!-- EINSTELLUNGEN -->
+  <div id="tab-settings" class="tab">
+    <div class="scroll"><div class="settings-wrap">
+
+      <div class="settings-sect">
+        <div class="ss-title">Kindprofil</div>
+        <div class="profile-disp">
+          <div class="prof-av" id="prof-av">?</div>
+          <div><div class="prof-name" id="prof-name">&#x2013;</div><div class="prof-age" id="prof-age">&#x2013;</div></div>
+        </div>
+        <div class="form-group"><label>Name</label><input type="text" id="set-name" placeholder="Name" maxlength="30"></div>
+        <div class="form-group"><label>Geburtsdatum</label><input type="date" id="set-bday"></div>
+        <button class="btn-primary" onclick="saveProfileSettings()">Profil speichern</button>
+      </div>
+
+      <div class="settings-sect">
+        <div class="ss-title">&#x1F916; Anthropic API-Key</div>
+        <p style="font-size:.78rem;color:var(--muted);line-height:1.6;margin-bottom:.875rem;">
+          Mit deinem API-Key kannst du Venue-Infos und Termine per KI aktualisieren.
+          Der Key wird nur lokal auf deinem Ger&#xE4;t gespeichert.
+        </p>
+        <div class="form-group"><label>API-Key</label>
+          <div class="api-key-wrap">
+            <input type="password" id="api-key-input" placeholder="sk-ant-api03-&#x2026;">
+            <button class="key-toggle" onclick="toggleKey()" id="key-toggle">&#x1F441;</button>
+          </div>
+          <div class="api-status" id="api-status"></div>
+        </div>
+        <button class="btn-primary" onclick="saveApiKey()">API-Key speichern</button>
+        <button class="btn-secondary" onclick="testApiKey()">Verbindung testen</button>
+      </div>
+
+      <div class="settings-sect">
+        <div class="ss-title">&#x1F504; App-Version &amp; Updates</div>
+        <p style="font-size:.78rem;color:var(--muted);line-height:1.6;margin-bottom:.875rem;">
+          Version: <span class="ver-tag" id="ver-tag">2.1.0</span><br><br>
+          KidsMap pr&#xFC;ft beim Start automatisch auf Updates.
+          Mit &#x201E;Hard Refresh&#x201C; wird der Cache geleert und die neueste Version geladen.
+        </p>
+        <button class="btn-primary" onclick="hardRefresh()" style="background:linear-gradient(135deg,#7C3AED,#5B21B6);margin-top:0;">
+          &#x1F504; Hard Refresh (Cache leeren)
+        </button>
+        <button class="btn-secondary" onclick="checkForUpdate()">Auf Update pr&#xFC;fen</button>
+      </div>
+
+      <div class="settings-sect">
+        <div class="ss-title">Standort</div>
+        <div class="form-group"><label>Suchzentrum (fest)</label>
+          <input type="text" value="47443 Moers, Deutschland" readonly style="background:#f8f8f8;color:var(--muted);"></div>
+        <p style="font-size:.78rem;color:var(--muted);line-height:1.6;">Radius im Entdecken-Tab anpassen (5&#x2013;150 km).</p>
+      </div>
+
+      <div class="settings-sect">
+        <div class="ss-title">&#xDC;ber KidsMap</div>
+        <p style="font-size:.78rem;color:var(--muted);line-height:1.65;">
+          Altersgerechte Ausflugsziele f&#xFC;r dein Kind &#x2013; Daten lokal gespeichert.<br>
+          Bewertungen &amp; Kosten: Stand 2025/26, k&#xF6;nnen variieren.<br><br>
+          <strong>Version 2.1.0</strong> &#xB7; Moers (47443)
+        </p>
+      </div>
+    </div></div>
+  </div>
+
+  <nav class="bot-nav">
+    <button class="nav-btn active" id="nav-discover"  onclick="switchTab('discover')"><span class="ni">&#x1F50D;</span><span class="nl">Entdecken</span></button>
+    <button class="nav-btn"        id="nav-calendar"  onclick="switchTab('calendar')"><span class="ni">&#x1F4C5;</span><span class="nl">Kalender</span></button>
+    <button class="nav-btn"        id="nav-manage"    onclick="switchTab('manage')"><span class="ni">&#x1F4CB;</span><span class="nl">Verwalten</span></button>
+    <button class="nav-btn"        id="nav-settings"  onclick="switchTab('settings')"><span class="ni">&#x1F464;</span><span class="nl">Profil</span></button>
+  </nav>
+</div>
+
+<!-- PLAN MODAL -->
+<div class="overlay" id="plan-overlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">&#x1F4C5; Ausflug planen</div>
+    <div class="section-label">Datum w&#xE4;hlen</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem;">
+      <button class="cal-nav" onclick="dpNav(-1)">&#x2039;</button>
+      <span id="dp-title" style="font-family:'Nunito',sans-serif;font-weight:900;color:var(--navy);">&#x2013;</span>
+      <button class="cal-nav" onclick="dpNav(1)">&#x203A;</button>
+    </div>
+    <div class="dp-grid" id="dp-grid"></div>
+    <div class="section-label" style="margin-top:.875rem;">Ort</div>
+    <div class="plan-venue-chip" id="plan-vc-name">&#x2013;</div>
+    <div class="form-group"><label>Notiz (optional)</label>
+      <input type="text" id="plan-note" placeholder="z. B. Sonnencreme nicht vergessen!"></div>
+    <button class="btn-primary" onclick="confirmPlan()">Ausflug speichern &#x2713;</button>
+    <button class="btn-secondary" onclick="closePlan()">Abbrechen</button>
+  </div>
+</div>
+
+<!-- VENUE EDIT MODAL -->
+<div class="overlay" id="venue-overlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="vm-title">Neuer Ort</div>
+    <input type="hidden" id="vm-id">
+    <div class="form-group"><label>Name *</label><input type="text" id="vm-name" placeholder="Name des Ortes"></div>
+    <div class="two-col">
+      <div class="form-group"><label>Typ</label>
+        <select id="vm-type">
+          <option>Indoor Spielplatz</option><option>Zoo</option><option>Freizeitpark</option>
+          <option>Erlebnis</option><option>Aquapark</option><option>Kirmes &amp; Events</option>
+          <option>Spielplatz</option><option>Sonstiges</option>
+        </select></div>
+      <div class="form-group"><label>Emoji</label>
+        <input type="text" id="vm-emoji" placeholder="&#x1F3AA;" maxlength="4" style="text-align:center;font-size:1.4rem;padding:.5rem;"></div>
+    </div>
+    <div class="form-group"><label>Adresse</label><input type="text" id="vm-addr" placeholder="Stra&#xDF;e, PLZ Ort"></div>
+    <div class="two-col">
+      <div class="form-group"><label>Entfernung (km)</label><input type="number" id="vm-dist" placeholder="15" min="0" max="500" inputmode="decimal"></div>
+      <div class="form-group"><label>Google Rating</label><input type="number" id="vm-rating" placeholder="4.2" min="1" max="5" step="0.1" inputmode="decimal"></div>
+    </div>
+    <div class="two-col">
+      <div class="form-group"><label>Min. Alter (J.)</label><input type="number" id="vm-minage" placeholder="0" min="0" max="18" inputmode="numeric"></div>
+      <div class="form-group"><label>Max. Alter (J.)</label><input type="number" id="vm-maxage" placeholder="12" min="0" max="99" inputmode="numeric"></div>
+    </div>
+    <div class="form-group"><label>Kosten</label><input type="text" id="vm-cost" placeholder="ab 12 &#x20AC; / Kind"></div>
+    <div class="form-group"><label>&#x1F4C5; Termine / Datum</label><input type="text" id="vm-dates" placeholder="z. B. 22.&#x2013;31. Aug. 2026"></div>
+    <div class="form-group"><label>&#xD6;ffnungszeiten</label><input type="text" id="vm-hours" placeholder="Mo&#x2013;So 10:00&#x2013;18:00"></div>
+    <div class="form-group"><label>Beschreibung</label><textarea id="vm-desc" placeholder="Kurze Beschreibung..."></textarea></div>
+    <div class="form-group"><label>Google Maps URL</label><input type="url" id="vm-maps" placeholder="https://maps.google.com/..." inputmode="url"></div>
+    <div class="form-group"><label>Webseite</label><input type="url" id="vm-web" placeholder="https://..." inputmode="url"></div>
+    <button class="btn-primary" onclick="saveVenue()">Speichern</button>
+    <button class="btn-secondary" onclick="closeVenueModal()">Abbrechen</button>
+  </div>
+</div>
+
+<!-- AI MODAL -->
+<div class="overlay" id="ai-overlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">&#x1F916; KI-Aktualisierung</div>
+    <div class="plan-venue-chip" id="ai-venue-name">&#x2013;</div>
+    <p style="font-size:.8rem;color:var(--muted);margin-bottom:.875rem;line-height:1.6;">
+      Claude sucht aktuelle Infos: Termine, &#xD6;ffnungszeiten, Preise und mehr.
+      Pr&#xFC;fe die Antwort und &#xFC;bernehme sie bei Bedarf.
+    </p>
+    <div class="form-group"><label>Zus&#xE4;tzlicher Fokus (optional)</label>
+      <input type="text" id="ai-extra" placeholder="z. B. Termine 2026, aktuelle Preise&#x2026;"></div>
+    <button class="btn-ai" id="ai-run-btn" onclick="runAiUpdate()">&#x1F916; Jetzt mit Claude aktualisieren</button>
+    <div id="ai-loading-area" style="display:none;">
+      <div class="ai-loading"><div class="ai-spinner"></div>Claude sucht aktuelle Informationen&#x2026;</div>
+    </div>
+    <div id="ai-response-area" style="display:none;">
+      <div class="section-label" style="margin-top:.875rem;">Antwort von Claude</div>
+      <div class="ai-response" id="ai-response-text"></div>
+      <button class="btn-primary" onclick="applyAiUpdate()" id="ai-apply-btn" style="display:none;">&#x2713; Infos auf Karte &#xFC;bernehmen</button>
+    </div>
+    <button class="btn-secondary" onclick="closeAiModal()">Schlie&#xDF;en</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+const APP_VERSION='2.1.0';
+const MONTHS=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const DAYS=['Mo','Di','Mi','Do','Fr','Sa','So'];
+
+const DEF=[
+  {id:1,name:"ZOOM Erlebniswelt",type:"Zoo",emoji:"🦁",address:"Werner-Heisenberg-Allee 1, 46049 Oberhausen",distanceKm:14,minAge:0,maxAge:99,googleRating:4.4,googleMapsUrl:"https://www.google.com/maps/place/ZOOM+Erlebniswelt",website:"https://www.zoom-erlebniswelt.de",cost:"ab 11,50 € Kind · 15,50 € Erw.",openHours:"täglich 9:00–18:00",description:"Afrikanische, amerikanische & asiatische Tierwelt auf 26 Hektar mit Kleinkindbereich.",weather:"outdoor"},
+  {id:2,name:"LEGOLAND Discovery Centre",type:"Indoor Spielplatz",emoji:"🧱",address:"Promenade 11 (CentrO), 46047 Oberhausen",distanceKm:16,minAge:3,maxAge:12,googleRating:4.2,googleMapsUrl:"https://www.google.com/maps/place/LEGOLAND+Discovery+Centre+Oberhausen",website:"https://www.legolanddiscoverycentre.com/oberhausen",cost:"ab 16,50 € (online günstiger)",openHours:"täglich 10:00–19:00",description:"Indoor-LEGO-Abenteuerland mit 4D-Kino, LEGO-Fahrgeschäften, Miniland und Bau-Werkstatt.",weather:"indoor"},
+  {id:3,name:"Movie Park Germany",type:"Freizeitpark",emoji:"🎬",address:"Warner-Allee 1, 46244 Bottrop",distanceKm:28,minAge:2,maxAge:99,googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/place/Movie+Park+Germany",website:"https://www.movieparkgermany.de",cost:"ab 29,95 € Kind · 39,95 € Erw.",openHours:"März–Oktober (saisonal)",description:"Filmthemenpark mit Nickelodeon-Welt, Kiddy Land und zahlreichen Attraktionen für jedes Alter.",weather:"outdoor"},
+  {id:4,name:"Jump House Duisburg",type:"Indoor Spielplatz",emoji:"🤸",address:"Großenbaumer Allee 131, 47269 Duisburg",distanceKm:10,minAge:2,maxAge:99,googleRating:4.1,googleMapsUrl:"https://www.google.com/maps/search/Jump+House+Duisburg",website:"https://www.jumphouse.de/duisburg",cost:"ab 10 € / Std.",openHours:"Mo–Fr 14:00–21:00 · Sa–So 10:00–21:00",description:"Riesige Trampolinhalle mit Kleinkindbereich, Foam-Pit und Ninja-Parcours.",weather:"indoor"},
+  {id:5,name:"Aquazoo Löbbecke Museum",type:"Zoo",emoji:"🐠",address:"Kaiserswerther Str. 380, 40474 Düsseldorf",distanceKm:32,minAge:0,maxAge:99,googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/place/Aquazoo+D%C3%BCsseldorf",website:"https://www.aquazoo-duesseldorf.de",cost:"ab 8 € Kind · 12 € Erw.",openHours:"täglich 10:00–18:00",description:"Aquarium und Naturkundemuseum mit Haifisch-Tunnel, Regenwald-Halle und Erlebnisstationen.",weather:"indoor"},
+  {id:6,name:"Zoo Krefeld",type:"Zoo",emoji:"🦒",address:"Uerdinger Str. 377, 47800 Krefeld",distanceKm:12,minAge:0,maxAge:99,googleRating:4.5,googleMapsUrl:"https://www.google.com/maps/place/Zoo+Krefeld",website:"https://www.zookrefeld.de",cost:"ab 7,50 € Kind · 12 € Erw.",openHours:"täglich 9:00–18:00 (Winter bis 17:00)",description:"Familienfreundlicher Zoo mit über 1.700 Tieren, Abenteuerspielplatz und Streichelgehege.",weather:"outdoor"},
+  {id:7,name:"SEA LIFE Oberhausen",type:"Erlebnis",emoji:"🦈",address:"Centroallee 1000, 46047 Oberhausen",distanceKm:17,minAge:0,maxAge:99,googleRating:4.0,googleMapsUrl:"https://www.google.com/maps/place/SEA+LIFE+Oberhausen",website:"https://www.visitsealife.com/oberhausen",cost:"ab 13,50 € Kind · 18 € Erw.",openHours:"täglich 10:00–18:00",description:"Aquarium mit begehbarem Haifisch-Tunnel, Meeresschildkröten und interaktiven Kinderstationen.",weather:"indoor"},
+  {id:8,name:"Wunderland Kalkar",type:"Freizeitpark",emoji:"🎡",address:"An der Alten Kaserne 1, 47546 Kalkar",distanceKm:26,minAge:0,maxAge:99,googleRating:4.1,googleMapsUrl:"https://www.google.com/maps/place/Wunderland+Kalkar",website:"https://www.wunderland-kalkar.de",cost:"ab 10 € Kind · 16 € Erw.",openHours:"täglich (Zeiten je Saison)",description:"Freizeitpark auf dem Gelände eines ehemaligen Kernkraftwerks mit Fahrgeschäften und Riesenrad.",weather:"outdoor"},
+  {id:9,name:"Monkey Mountain Susteren (NL)",type:"Erlebnis",emoji:"🐒",address:"Aap Heide, Susteren, Niederlande",distanceKm:44,minAge:0,maxAge:99,googleRating:4.6,googleMapsUrl:"https://www.google.com/maps/place/Aap+Heide+Susteren",website:"https://www.aapheide.nl",cost:"ca. 12 € Erw. · Kinder unter 3 gratis",openHours:"Apr–Okt: täglich 10:00–17:00",description:"Einzigartiger Park mit frei laufenden Berber-Affen – Kinder erleben Tiere aus nächster Nähe.",weather:"outdoor"},
+  {id:10,name:"Phantasialand",type:"Freizeitpark",emoji:"🎭",address:"Berggeiststr. 31-41, 50321 Brühl",distanceKm:68,minAge:2,maxAge:99,googleRating:4.5,googleMapsUrl:"https://www.google.com/maps/place/Phantasialand",website:"https://www.phantasialand.de",cost:"ab 42,50 € / Person",openHours:"März–November (saisonal)",description:"Einer der besten Freizeitparks Europas mit Phantasialand Kids, Wasserpark und spektakulären Shows.",weather:"outdoor"},
+  {id:11,name:"Revierpark Mattlerbusch",type:"Aquapark",emoji:"🌊",address:"Zum Revierpark 1, 47166 Duisburg",distanceKm:8,minAge:0,maxAge:99,googleRating:3.9,googleMapsUrl:"https://www.google.com/maps/place/Revierpark+Mattlerbusch",website:"https://www.revierpark-mattlerbusch.de",cost:"Freibad ab 4 € Kind",openHours:"Sommer täglich · Freizeitpark ganzjährig",description:"Weitläufiger Freizeitpark mit Freibad, Minigolf, Abenteuerspielplatz und Veranstaltungen.",weather:"outdoor"},
+  {id:12,name:"Indoor Kletterpark Duisburg",type:"Indoor Spielplatz",emoji:"🧗",address:"Duisburg Stadtgebiet",distanceKm:11,minAge:4,maxAge:99,googleRating:4.4,googleMapsUrl:"https://www.google.com/maps/search/Kletterhalle+Duisburg",website:"#",cost:"ab 12 € / Std.",openHours:"Mo–Fr 14:00–22:00 · Sa–So 10:00–20:00",description:"Kletterhalle mit anfängerfreundlichen Boulderrouten und Kindergruppen-Bereich.",weather:"indoor"},
+  {id:13,name:"Fort Fun Abenteuerland",type:"Freizeitpark",emoji:"🏰",address:"Zum Freizeitpark 2, 59846 Sundern",distanceKm:92,minAge:2,maxAge:99,googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/place/Fort+Fun+Abenteuerland",website:"https://www.fort-fun.de",cost:"ab 22 € Kind · 32 € Erw.",openHours:"Apr–Okt (saisonal)",description:"Wild-West-Freizeitpark im Sauerland mit Wasserpark, Achterbahnen und großem Kinderland.",weather:"outdoor"},
+  {id:14,name:"Spielscheune Moers",type:"Indoor Spielplatz",emoji:"🎠",address:"Moers Stadtgebiet",distanceKm:3,minAge:1,maxAge:10,googleRating:4.0,googleMapsUrl:"https://www.google.com/maps/search/Indoor+Spielplatz+Moers",website:"#",cost:"ab 5 € / Kind",openHours:"Mi–So 10:00–18:00",description:"Lokaler Indoor-Spielplatz mit Hüpfburg, Rutschenlandschaft, Kleinkindbereich und Eltern-Café.",weather:"indoor"},
+  {id:15,name:"Kindermuseum Duisburg",type:"Erlebnis",emoji:"🔭",address:"Düsseldorfer Str. 51, 47051 Duisburg",distanceKm:10,minAge:3,maxAge:12,googleRating:4.2,googleMapsUrl:"https://www.google.com/maps/search/Kindermuseum+Duisburg",website:"#",cost:"ab 7 € Kind · 9 € Elternteil",openHours:"Di–So 10:00–17:00",description:"Interaktives Museum zum Anfassen und Mitmachen mit wechselnden Erlebnisausstellungen für 3–12-Jährige.",weather:"indoor"},
+  {id:16,name:"Monkey Town Neukirchen-Vluyn",type:"Indoor Spielplatz",emoji:"🐵",address:"Niederrheinallee 181, 47506 Neukirchen-Vluyn",distanceKm:5,minAge:1,maxAge:12,googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/search/Monkey+Town+Neukirchen-Vluyn",website:"https://www.monkeytown.eu",cost:"ab 7,50 € / Kind · Eltern frei",openHours:"Mo–Fr 14:00–19:00 · Sa–So 10:00–19:00",description:"Großer Indoor-Kletterpark mit mehrstöckigen Spieltürmen, Rutschen, Hüpfburgen und Kleinkindbereich.",weather:"indoor"},
+  {id:17,name:"Monkey Town Duisburg",type:"Indoor Spielplatz",emoji:"🐵",address:"Duisburg (Stadtgebiet)",distanceKm:11,minAge:1,maxAge:12,googleRating:4.2,googleMapsUrl:"https://www.google.com/maps/search/Monkey+Town+Duisburg",website:"https://www.monkeytown.eu",cost:"ab 7,50 € / Kind · Eltern frei",openHours:"Mo–Fr 14:00–19:00 · Sa–So 10:00–19:00",description:"Weiterer Monkey Town Standort mit mehrstöckigem Kletterparadies, Partyräumen und Café.",weather:"indoor"},
+  {id:18,name:"Bobolino Oberhausen",type:"Indoor Spielplatz",emoji:"🎪",address:"Brammenring 111, 46049 Oberhausen",distanceKm:16,minAge:1,maxAge:12,googleRating:4.1,googleMapsUrl:"https://www.google.com/maps/search/Bobolino+Oberhausen",website:"https://www.bobolino.de",cost:"ab 8 € / Kind · Eltern frei",openHours:"täglich 10:00–19:00",description:"Großer Indoor-Freizeitpark mit Klettergerüsten, Trampolinen, Röhrenrutschen und Kleinkindparadies.",weather:"indoor"},
+  {id:19,name:"Okidoki Indoor Krefeld",type:"Indoor Spielplatz",emoji:"🎠",address:"Krefeld (Stadtgebiet)",distanceKm:14,minAge:1,maxAge:12,googleRating:4.0,googleMapsUrl:"https://www.google.com/maps/search/Okidoki+Krefeld",website:"#",cost:"ab 6,50 € / Kind",openHours:"Mo–Fr 14:00–19:00 · Sa–So 10:00–19:00",description:"Beliebter Indoor-Spielplatz mit Hüpfburg, Kletterturm und Kleinkindbereich.",weather:"indoor"},
+  {id:20,name:"Indoor Spielplatz Pumuckl Moers",type:"Indoor Spielplatz",emoji:"🧒",address:"Moers Stadtgebiet",distanceKm:4,minAge:1,maxAge:10,googleRating:4.1,googleMapsUrl:"https://www.google.com/maps/search/Pumuckl+Spielplatz+Moers",website:"#",cost:"ab 5 € / Kind",openHours:"Di–So 10:00–18:00",description:"Lokaler Indoor-Spielplatz in Moers mit Hüpfburg, Bällebad und kleinem Elterncafé.",weather:"indoor"},
+  {id:21,name:"Funpark Xanten",type:"Freizeitpark",emoji:"🏕️",address:"46509 Xanten",distanceKm:30,minAge:2,maxAge:99,googleRating:4.2,googleMapsUrl:"https://www.google.com/maps/search/Freizeitpark+Xanten",website:"https://www.xanten.de",cost:"Eintritt variiert",openHours:"saisonal (Sommer)",description:"Familienfreizeitpark im historischen Xanten mit Römer-Thema, Abenteuerpark und Wassersport.",weather:"outdoor"},
+  {id:22,name:"Karls Erlebnishof Lohmar",type:"Erlebnis",emoji:"🍓",address:"Lohmar (Nähe Köln)",distanceKm:75,minAge:0,maxAge:99,googleRating:4.5,googleMapsUrl:"https://www.google.com/maps/search/Karls+Erlebnishof+Lohmar",website:"https://www.karls.de/lohmar",cost:"Eintritt frei · Attraktionen einzeln",openHours:"täglich (Frühjahr–Herbst)",description:"Erlebnisbauernhof mit Erdbeerpflücken, Riesenrutschen, Traktorfahrten und Tiererlebnissen.",weather:"outdoor"},
+  {id:23,name:"Dinopark Münchehagen",type:"Erlebnis",emoji:"🦕",address:"Am Dinopark 1, 31515 Wunstorf",distanceKm:145,minAge:0,maxAge:99,googleRating:4.4,googleMapsUrl:"https://www.google.com/maps/place/DinoWorld+M%C3%BCnchehagen",website:"https://www.dinopark.de",cost:"ab 15 € Kind · 18 € Erw.",openHours:"März–November täglich 9:00–18:00",description:"Europas größter Dinosaurier-Freiluftpark mit lebensgroßen Dino-Figuren und Ausgrabungsfeldern.",weather:"outdoor"},
+  {id:24,name:"Allwetterzoo Münster",type:"Zoo",emoji:"🐘",address:"Sentruper Str. 315, 48161 Münster",distanceKm:75,minAge:0,maxAge:99,googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/place/Allwetterzoo+M%C3%BCnster",website:"https://www.allwetterzoo.de",cost:"ab 11 € Kind · 17 € Erw.",openHours:"täglich 9:00–18:00 (Winter bis 17:00)",description:"Großer Zoo mit überdachten Tierhäusern – auch bei schlechtem Wetter ideal.",weather:"outdoor"},
+  {id:25,name:"Attractiepark Venlo (NL)",type:"Freizeitpark",emoji:"🌤️",address:"Nähe Venlo, Niederlande",distanceKm:55,minAge:2,maxAge:99,googleRating:4.2,googleMapsUrl:"https://www.google.com/maps/search/attractiepark+venlo",website:"#",cost:"ab ca. 18 € / Person",openHours:"saisonal (Apr–Okt)",description:"Niederländischer Freizeitpark nahe Venlo mit Fahrgeschäften und Kinderbereichen.",weather:"outdoor"},
+  // Kirmes mit Terminen
+  {id:27,name:"Moerser Kirmes",type:"Kirmes & Events",emoji:"🎡",address:"Innenstadt, 47441 Moers",distanceKm:2,minAge:0,maxAge:99,googleRating:4.2,googleMapsUrl:"https://www.google.com/maps/search/Kirmes+Moers",website:"https://www.moers.de",cost:"Eintritt frei · Fahrgeschäfte einzeln",dates:"ca. 22.–31. August 2026",openHours:"tägl. ca. 14:00–23:00 (So bis 22:00)",description:"Die Moerser Stadtkirmes – Karussells, Losbuden, Zuckerwatte und Kinderfahrgeschäfte direkt vor der Haustür.",weather:"outdoor"},
+  {id:28,name:"Rheinkirmes Düsseldorf",type:"Kirmes & Events",emoji:"🎠",address:"Oberkasseler Rheinwiesen, 40547 Düsseldorf",distanceKm:31,minAge:0,maxAge:99,googleRating:4.5,googleMapsUrl:"https://www.google.com/maps/place/Rheinkirmes+D%C3%BCsseldorf",website:"https://www.rheinkirmes.de",cost:"Eintritt frei · Fahrgeschäfte einzeln",dates:"11.–20. Juli 2026",openHours:"tägl. 11:00–23:00 · Feuerwerk Sa 23:00",description:"Eines der größten Volksfeste am Rhein mit über 300 Schaustellern, riesigem Kinderland und Feuerwerk.",weather:"outdoor"},
+  {id:29,name:"Cranger Kirmes Herne",type:"Kirmes & Events",emoji:"🎢",address:"Cranger Str., 44625 Herne",distanceKm:38,minAge:0,maxAge:99,googleRating:4.4,googleMapsUrl:"https://www.google.com/maps/place/Cranger+Kirmes",website:"https://www.cranger-kirmes.de",cost:"Eintritt frei · Fahrgeschäfte einzeln",dates:"ca. 25. Juli – 3. Aug. 2026",openHours:"tägl. 14:00–24:00 · Sa/So ab 12:00",description:"Zweitgrößtes Volksfest Deutschlands mit über 500 Schaustellern und riesigem Kinderland.",weather:"outdoor"},
+  {id:30,name:"Kirmes Neukirchen-Vluyn",type:"Kirmes & Events",emoji:"🎪",address:"Neukirchen-Vluyn Stadtmitte",distanceKm:6,minAge:0,maxAge:99,googleRating:4.0,googleMapsUrl:"https://www.google.com/maps/search/Kirmes+Neukirchen-Vluyn",website:"#",cost:"Eintritt frei · Fahrgeschäfte einzeln",dates:"Sommer 2026 – Termin per KI aktualisierbar",openHours:"tägl. ab ca. 14:00",description:"Gemütliche Lokalkirmes direkt in der Nachbarschaft – ideal für spontane Nachmittagsausflüge.",weather:"outdoor"},
+  {id:31,name:"Kirmes Krefeld",type:"Kirmes & Events",emoji:"🎭",address:"Innenstadt Krefeld",distanceKm:12,minAge:0,maxAge:99,googleRating:4.1,googleMapsUrl:"https://www.google.com/maps/search/Volksfest+Krefeld",website:"https://www.krefeld.de",cost:"Eintritt frei · Fahrgeschäfte einzeln",dates:"Sommer/Herbst 2026 – Termin per KI aktualisierbar",openHours:"tägl. ab ca. 14:00",description:"Krefelder Volksfest mit Fahrgeschäften, Kirmesständen und Kinderbelustigungen.",weather:"outdoor"},
+  {id:32,name:"Duisburger Weihnachtsmarkt & Winterwelt",type:"Kirmes & Events",emoji:"⛸️",address:"König-Heinrich-Platz, 47051 Duisburg",distanceKm:10,minAge:0,maxAge:99,googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/search/Weihnachtsmarkt+Duisburg",website:"https://www.duisburg.de",cost:"Eintritt frei · Eislaufen kostenpflichtig",dates:"ca. 16. Nov. – 23. Dez. 2026",openHours:"Mo–Do 11:00–21:00 · Fr–So 11:00–22:00",description:"Schöner Weihnachtsmarkt mit Eisbahn, Kinderkarussell und Weihnachtsmann-Hütte.",weather:"outdoor"},
+  {id:33,name:"Moerser Weihnachtsmarkt",type:"Kirmes & Events",emoji:"🎄",address:"Altmarkt, 47441 Moers",distanceKm:2,minAge:0,maxAge:99,googleRating:4.2,googleMapsUrl:"https://www.google.com/maps/search/Weihnachtsmarkt+Moers",website:"https://www.moers.de",cost:"Eintritt frei",dates:"ca. 24. Nov. – 23. Dez. 2026",openHours:"Mo–Sa 11:00–20:00 · So 12:00–19:00",description:"Stimmungsvoller Weihnachtsmarkt auf dem Altmarkt mit Kinderkarussell und Bastelständen.",weather:"outdoor"},
+  {id:34,name:"Oktoberfest Rhein-Ruhr Oberhausen",type:"Kirmes & Events",emoji:"🍺",address:"Oberhausen (Veranstaltungsgelände)",distanceKm:18,minAge:0,maxAge:99,googleRating:4.0,googleMapsUrl:"https://www.google.com/maps/search/Oktoberfest+Oberhausen",website:"#",cost:"Eintritt variiert · Kinderprogramm oft frei",dates:"ca. 18. Sep. – 4. Okt. 2026",openHours:"tägl. ab 12:00",description:"Regionales Oktoberfest mit Bierzelt, Fahrgeschäften und eigenem Kinderprogramm.",weather:"outdoor"},
+  // Trödelmärkte
+  {id:35,name:"Kindertrödelmarkt Moers",type:"Kirmes & Events",emoji:"🧸",address:"Innenstadt / Wochenmarkt Moers",distanceKm:2,minAge:0,maxAge:99,googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/search/Kindertrödelmarkt+Moers",website:"https://www.moers.de",cost:"Eintritt frei · Standgebühr Verkäufer ca. 5–10 €",dates:"mehrmals jährlich – nächster Termin per KI aktualisierbar",openHours:"Sa/So 8:00–14:00",description:"Kindertrödelmarkt in Moers – Spielsachen, Kleidung und Bücher kaufen und verkaufen.",weather:"outdoor"},
+  {id:36,name:"Kindertrödelmarkt Neukirchen-Vluyn",type:"Kirmes & Events",emoji:"🧸",address:"Neukirchen-Vluyn Stadtmitte",distanceKm:6,minAge:0,maxAge:99,googleRating:4.2,googleMapsUrl:"https://www.google.com/maps/search/Kindertrödelmarkt+Neukirchen-Vluyn",website:"#",cost:"Eintritt frei · Standgebühr ca. 5 €",dates:"mehrmals jährlich – nächster Termin per KI aktualisierbar",openHours:"Sa/So 8:00–14:00",description:"Beliebter Kindertrödelmarkt direkt nebenan – Spielzeug, Kindermode und Zubehör.",weather:"outdoor"},
+  {id:37,name:"Kinderflohmarkt Duisburg (Revierpark)",type:"Kirmes & Events",emoji:"🎒",address:"Revierpark Mattlerbusch, 47166 Duisburg",distanceKm:8,minAge:0,maxAge:99,googleRating:4.2,googleMapsUrl:"https://www.google.com/maps/search/Kinderflohmarkt+Duisburg+Revierpark",website:"https://www.revierpark-mattlerbusch.de",cost:"Eintritt frei · Standgebühr ca. 8 €",dates:"mehrmals jährlich – nächster Termin per KI aktualisierbar",openHours:"Sa 8:00–14:00",description:"Kinderflohmarkt im Revierpark – Spielzeug, Bücher, Fahrräder und Kinderkleidung.",weather:"outdoor"},
+  {id:38,name:"Kinderflohmarkt Krefeld",type:"Kirmes & Events",emoji:"🎒",address:"Innenstadt Krefeld",distanceKm:12,minAge:0,maxAge:99,googleRating:4.1,googleMapsUrl:"https://www.google.com/maps/search/Kinderflohmarkt+Krefeld",website:"https://www.krefeld.de",cost:"Eintritt frei",dates:"mehrmals jährlich – nächster Termin per KI aktualisierbar",openHours:"Sa/So 8:00–14:00",description:"Regelmäßiger Kinderflohmarkt mit großem Angebot – von Spielzeug bis Kinderwagen.",weather:"outdoor"},
+  {id:39,name:"Kinderflohmarkt Oberhausen (CentrO)",type:"Kirmes & Events",emoji:"🛍️",address:"CentrO Promenade, 46047 Oberhausen",distanceKm:16,minAge:0,maxAge:99,googleRating:4.0,googleMapsUrl:"https://www.google.com/maps/search/Kinderflohmarkt+Oberhausen+CentrO",website:"https://www.centro.de",cost:"Eintritt frei",dates:"mehrmals jährlich – nächster Termin per KI aktualisierbar",openHours:"Sa 10:00–16:00",description:"Indoor-Kinderflohmarkt im CentrO – wetterunabhängig stöbern nach Spielzeug und Kinderkleidung.",weather:"indoor"},
+  {id:40,name:"Kinderflohmarkt Düsseldorf Rheinwiesen",type:"Kirmes & Events",emoji:"🛍️",address:"Oberkasseler Rheinwiesen, 40547 Düsseldorf",distanceKm:31,minAge:0,maxAge:99,googleRating:4.4,googleMapsUrl:"https://www.google.com/maps/search/Kinderflohmarkt+Düsseldorf+Rheinwiesen",website:"#",cost:"Eintritt frei · Standgebühr ca. 10 €",dates:"mehrmals jährlich – nächster Termin per KI aktualisierbar",openHours:"Sa/So 8:00–14:00",description:"Einer der größten Kindertrödelmärkte der Region direkt am Rhein – Hunderte Stände.",weather:"outdoor"},
+  // Spielplätze
+  {id:50,name:"Volkspark Moers",type:"Spielplatz",emoji:"🛝",address:"Rheinberger Str., 47441 Moers",distanceKm:1,minAge:0,maxAge:12,googleRating:4.4,googleMapsUrl:"https://www.google.com/maps/search/Volkspark+Moers",website:"https://www.moers.de",cost:"kostenlos",openHours:"täglich",description:"Großer Stadtpark mit weitläufiger Spielanlage, Klettergerüsten, Sandkasten und Schaukeln.",weather:"outdoor"},
+  {id:51,name:"Abenteuerspielplatz Moers-Mitte",type:"Spielplatz",emoji:"🏗️",address:"Innenstadt Moers",distanceKm:2,minAge:3,maxAge:14,googleRating:4.2,googleMapsUrl:"https://www.google.com/maps/search/Abenteuerspielplatz+Moers",website:"#",cost:"kostenlos",openHours:"täglich",description:"Klassischer Abenteuerspielplatz mit Klettertürmen, Seilbahnen und Wasserspielbereichen.",weather:"outdoor"},
+  {id:52,name:"Spielplatz Schwanenstraße Moers",type:"Spielplatz",emoji:"🦢",address:"Schwanenstr., 47441 Moers",distanceKm:2,minAge:0,maxAge:10,googleRating:4.1,googleMapsUrl:"https://www.google.com/maps/search/Spielplatz+Schwanenstraße+Moers",website:"#",cost:"kostenlos",openHours:"täglich",description:"Beliebter Wohngebiets-Spielplatz mit Kleinkindbereich, Schaukeln und Elternsitzbereich.",weather:"outdoor"},
+  {id:53,name:"Schlosspark Moers",type:"Spielplatz",emoji:"🏛️",address:"Kastell 9, 47441 Moers",distanceKm:2,minAge:2,maxAge:12,googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/search/Spielplatz+Moerser+Schloss",website:"https://www.grafschafter-museum.de",cost:"kostenlos",openHours:"täglich (Schlossgarten-Zeiten)",description:"Malerischer Spielbereich im Schlosspark – Kletteranlage und Rutsche im historischen Ambiente.",weather:"outdoor"},
+  {id:54,name:"Spielplatz Xantener Nordsee",type:"Spielplatz",emoji:"⛵",address:"Xantener Nordsee, 46509 Xanten",distanceKm:30,minAge:0,maxAge:14,googleRating:4.5,googleMapsUrl:"https://www.google.com/maps/search/Xantener+Nordsee+Spielplatz",website:"https://www.xanten.de",cost:"kostenlos (Parken ca. 3 €)",openHours:"täglich",description:"Riesiger Naturspielplatz direkt am See mit Wasserspielbereich, Seilbahnen und Sandstrand.",weather:"outdoor"},
+  {id:55,name:"Rheinpark Duisburg-Homberg",type:"Spielplatz",emoji:"🌿",address:"Rheinpark, 47119 Duisburg-Homberg",distanceKm:7,minAge:0,maxAge:12,googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/search/Spielplatz+Rheinpark+Duisburg+Homberg",website:"#",cost:"kostenlos",openHours:"täglich",description:"Großzügiger Spielplatz mit Rheinblick – Kletteranlage, Rutsche und Sandkasten am Rheinufer.",weather:"outdoor"},
+  {id:56,name:"Stadtpark Neukirchen-Vluyn",type:"Spielplatz",emoji:"🌳",address:"Stadtpark, 47506 Neukirchen-Vluyn",distanceKm:5,minAge:0,maxAge:12,googleRating:4.2,googleMapsUrl:"https://www.google.com/maps/search/Spielplatz+Stadtpark+Neukirchen-Vluyn",website:"#",cost:"kostenlos",openHours:"täglich",description:"Gepflegter Stadtpark-Spielplatz mit Kletterturm, Nestschaukel und Wasser-Matschanlage.",weather:"outdoor"},
+  {id:57,name:"Rheinufer Uerdingen (Krefeld)",type:"Spielplatz",emoji:"⚓",address:"Rheinufer Uerdingen, 47829 Krefeld",distanceKm:10,minAge:0,maxAge:12,googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/search/Spielplatz+Uerdingen+Rheinufer",website:"#",cost:"kostenlos",openHours:"täglich",description:"Großer Spielplatz direkt am Rheinufer mit Klettergerüst, Rutsche und tollem Ausblick.",weather:"outdoor"},
+  {id:58,name:"Wasserspielplatz Innenhafen Duisburg",type:"Spielplatz",emoji:"💦",address:"Innenhafen, 47051 Duisburg",distanceKm:11,minAge:0,maxAge:10,googleRating:4.4,googleMapsUrl:"https://www.google.com/maps/search/Spielplatz+Duisburg+Innenhafen",website:"#",cost:"kostenlos",openHours:"täglich (Wasserspiele Sommer)",description:"Moderner Wasserspielplatz mit Wasserdüsen, Matschanlage und Klettergeräten am Wasser.",weather:"outdoor"},
+  {id:59,name:"Hülsenberger Teich Moers",type:"Spielplatz",emoji:"🦆",address:"Hülsenberger Teich, 47441 Moers",distanceKm:3,minAge:0,maxAge:12,googleRating:4.1,googleMapsUrl:"https://www.google.com/maps/search/Hülsenberger+Teich+Moers",website:"#",cost:"kostenlos",openHours:"täglich",description:"Idyllischer Teich mit Spielbereich – Enten füttern, Spielgeräte und Spazierwege.",weather:"outdoor"},
+  {id:60,name:"Naturspielplatz Kamper Wald",type:"Spielplatz",emoji:"🌲",address:"Kamper Wald, 47445 Moers-Kapellen",distanceKm:5,minAge:2,maxAge:14,googleRating:4.5,googleMapsUrl:"https://www.google.com/maps/search/Kamper+Wald+Moers",website:"#",cost:"kostenlos",openHours:"täglich",description:"Naturnaher Waldspielplatz mit Barfußpfad, Baumstammklettern, Wasserlauf und Feuerstelle.",weather:"outdoor"},
+  {id:61,name:"Freizeitpark Bettenkamp Moers",type:"Spielplatz",emoji:"⛹️",address:"Bettenkamp, 47447 Moers",distanceKm:4,minAge:0,maxAge:14,googleRating:4.0,googleMapsUrl:"https://www.google.com/maps/search/Spielplatz+Bettenkamp+Moers",website:"#",cost:"kostenlos",openHours:"täglich",description:"Freizeitanlage mit Bolzplatz, Basketballkorb, Spielgeräten und Picknickbereich.",weather:"outdoor"},
+  {id:62,name:"Naturerlebnispark Weeze",type:"Spielplatz",emoji:"✈️",address:"Nähe Weeze, 47652 Weeze",distanceKm:35,minAge:0,maxAge:12,googleRating:4.3,googleMapsUrl:"https://www.google.com/maps/search/Spielplatz+Weeze+Naturerlebnispark",website:"#",cost:"kostenlos",openHours:"täglich",description:"Weitläufiger Naturerlebnispark nahe Weeze mit Abenteuerpfad, Kletterwald und Wasserpumpen.",weather:"outdoor"}
+];
+
+// State
+let S={profile:null,venues:[],planned:[],favorites:[],radius:30,typeFilter:'all',
+  calYear:new Date().getFullYear(),calMonth:new Date().getMonth(),
+  dp:{venueId:null,year:new Date().getFullYear(),month:new Date().getMonth(),sel:null}};
+let apiKey='';
+let aiVenueId=null,aiParsedData=null,swReg=null;
+
+function load(){
+  try{
+    const r=localStorage.getItem('kidsmap_v2');
+    if(r) Object.assign(S,JSON.parse(r));
+    if(!S.venues||!S.venues.length) S.venues=DEF.map(v=>({...v}));
+    if(!S.favorites) S.favorites=[];
+    if(!S.planned) S.planned=[];
+  }catch{S.venues=DEF.map(v=>({...v}));}
+  apiKey=localStorage.getItem('kidsmap_apikey')||'';
+}
+function save(){
+  localStorage.setItem('kidsmap_v2',JSON.stringify(
+    {profile:S.profile,venues:S.venues,planned:S.planned,favorites:S.favorites,radius:S.radius}));
+}
+
+// Profile
+function saveProfile(){
+  const name=document.getElementById('s-name').value.trim();
+  const bday=document.getElementById('s-bday').value;
+  if(!name||!bday){toast('Bitte Name und Geburtsdatum eingeben');return;}
+  S.profile={name,birthdate:bday};
+  if(!S.venues.length) S.venues=DEF.map(v=>({...v}));
+  save();launchApp();
+}
+function getAge(bday){
+  const b=new Date(bday),n=new Date();
+  let y=n.getFullYear()-b.getFullYear(),m=n.getMonth()-b.getMonth();
+  if(m<0){y--;m+=12;} if(n.getDate()<b.getDate()) m=Math.max(0,m-1);
+  return{years:Math.max(0,y),months:Math.max(0,m)};
+}
+function ageFloat(bday){const a=getAge(bday);return a.years+a.months/12;}
+function fmtAge(a){return a.years===0?a.months+' Mon.':a.years+' J.'+(a.months?' '+a.months+' M.':'');}
+function fmtAgeLg(a){return a.years===0?a.months+' Monate alt':a.years+' J. '+a.months+' Mon. alt';}
+function updateHeader(){
+  if(!S.profile)return;
+  const a=getAge(S.profile.birthdate);
+  document.getElementById('age-pill').textContent=fmtAge(a);
+  document.getElementById('hdr-av').textContent=S.profile.name[0].toUpperCase();
+}
+
+// Navigation
+function launchApp(){
+  document.getElementById('setup-screen').classList.remove('active');
+  document.getElementById('app-screen').classList.add('active');
+  document.getElementById('r-slider').value=S.radius;
+  document.getElementById('r-val').textContent=S.radius+' km';
+  document.getElementById('ver-tag').textContent=APP_VERSION;
+  if(apiKey) document.getElementById('api-key-input').value=apiKey;
+  updateHeader();renderDiscover();renderCalendar();renderManage();renderSettings();
+  checkForUpdateSilent();
+}
+function switchTab(tab){
+  ['discover','calendar','manage','settings'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.remove('on');
+    document.getElementById('nav-'+t).classList.remove('active');
+  });
+  document.getElementById('tab-'+tab).classList.add('on');
+  document.getElementById('nav-'+tab).classList.add('active');
+  if(tab==='calendar') renderCalendar();
+  if(tab==='manage')   renderManage();
+  if(tab==='settings') renderSettings();
+}
+
+// Discover
+function setType(el,t){
+  S.typeFilter=t;
+  document.querySelectorAll('#chip-row .chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');renderDiscover();
+}
+function setRadius(v){
+  S.radius=parseInt(v);
+  document.getElementById('r-val').textContent=v+' km';
+  renderDiscover();save();
+}
+function isFree(v){return v.cost&&(v.cost.toLowerCase().includes('kostenlos')||v.cost.toLowerCase().includes('frei'));}
+function ageMatch(v){
+  if(!S.profile)return'good';
+  const af=ageFloat(S.profile.birthdate);
+  if(af<v.minAge||af>v.maxAge)return'out';
+  if(af>=v.minAge+0.5&&af<=v.maxAge-1)return'good';
+  return'ok';
+}
+function ageLabel(v){
+  const m=ageMatch(v);
+  if(m==='good')return{cls:'good',txt:'✓ Altersgerecht'};
+  if(m==='ok')return{cls:'ok',txt:'~ Fast passend'};
+  const af=S.profile?ageFloat(S.profile.birthdate):0;
+  return af<v.minAge?{cls:'out',txt:'Ab '+v.minAge+' J.'}:{cls:'out',txt:'Bis '+v.maxAge+' J.'};
+}
+function cardGrad(t){
+  return({'Zoo':'linear-gradient(135deg,#1B5E20,#2E7D32)',
+    'Indoor Spielplatz':'linear-gradient(135deg,#1565C0,#1976D2)',
+    'Freizeitpark':'linear-gradient(135deg,#6A1B9A,#8E24AA)',
+    'Erlebnis':'linear-gradient(135deg,#E65100,#F57C00)',
+    'Aquapark':'linear-gradient(135deg,#006064,#00838F)',
+    'Kirmes & Events':'linear-gradient(135deg,#B71C1C,#C62828)',
+    'Spielplatz':'linear-gradient(135deg,#2E7D32,#558B2F)'}[t]||'linear-gradient(135deg,#1B3A5C,#2A5298)');
+}
+function stars(r){return'★'.repeat(Math.floor(r))+((r%1)>=.5?'½':'');}
+
+function renderDiscover(){
+  const g=document.getElementById('v-grid');
+  let list=S.venues.filter(v=>v.distanceKm<=S.radius);
+  if(S.typeFilter==='fav')  list=list.filter(v=>S.favorites.includes(v.id));
+  else if(S.typeFilter==='free') list=list.filter(v=>isFree(v));
+  else if(S.typeFilter!=='all')  list=list.filter(v=>v.type===S.typeFilter);
+  const ord={good:0,ok:1,out:2};
+  list.sort((a,b)=>(ord[ageMatch(a)]-ord[ageMatch(b)])||(a.distanceKm-b.distanceKm));
+  document.getElementById('stats-bar').innerHTML=
+    `<div class="stat-item"><strong>${list.length}</strong> Orte</div>
+     <div class="stat-item"><strong>${S.favorites.length}</strong> ⭐ Favoriten</div>
+     <div class="stat-item"><strong>${S.planned.length}</strong> 📅 geplant</div>`;
+  if(!list.length){
+    g.innerHTML='<div class="empty-state"><div class="ei">🔍</div><h3>Keine Orte gefunden</h3><p>Radius erhöhen oder Filter ändern.</p></div>';
+    return;
+  }
+  g.innerHTML=list.map((v,i)=>{
+    const al=ageLabel(v);
+    const isFav=S.favorites.includes(v.id);
+    const webBtn=v.website&&v.website!=='#'?`<a class="btn-map" href="${v.website}" target="_blank" rel="noopener" style="background:var(--navy-l);">🌐 Web</a>`:'';
+    const datesHtml=v.dates?`<div class="dates-strip">📅 ${v.dates}</div>`:'';
+    const wCls=v.weather==='indoor'?'indoor':'outdoor';
+    const wLbl=v.weather==='indoor'?'☔ Auch bei Regen':'🌤 Outdoor';
+    return`<div class="vc" style="animation-delay:${i*.04}s">
+      <div class="vc-img" style="background:${cardGrad(v.type)}">
+        <span>${v.emoji}</span>
+        <span class="vc-type-badge">${v.type}</span>
+        <button class="fav-btn" onclick="toggleFav(event,${v.id})">${isFav?'❤️':'🤍'}</button>
+        <span class="weather-badge ${wCls}">${wLbl}</span>
+      </div>
+      <div class="vc-body">
+        <div class="vc-top">
+          <div class="vc-name">${v.name}</div>
+          <div class="vc-rating"><span class="vc-stars">${stars(v.googleRating)}</span><span class="vc-rval">${v.googleRating}</span></div>
+        </div>
+        <div class="vc-meta">
+          <span class="mpill">📍 ${v.distanceKm} km</span>
+          <span class="mpill">🕐 ${v.openHours||'–'}</span>
+          <span class="age-badge ${al.cls}">${al.txt}</span>
+        </div>
+        ${datesHtml}
+        <div class="cost-strip">💰 ${v.cost}</div>
+        <div class="vc-desc">${v.description}</div>
+        <div class="vc-actions">
+          <a class="btn-map" href="${v.googleMapsUrl}" target="_blank" rel="noopener">🗺️ Maps</a>
+          ${webBtn}
+          <button class="btn-plan" onclick="openPlan(${v.id})">📅 Planen</button>
+          <button class="btn-upd"  onclick="openAiModal(${v.id})">🤖 KI</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function toggleFav(e,id){
+  e.stopPropagation();
+  const i=S.favorites.indexOf(id);
+  if(i===-1) S.favorites.push(id); else S.favorites.splice(i,1);
+  save();renderDiscover();
+}
+
+// Calendar
+function calNav(d){
+  S.calMonth+=d;
+  if(S.calMonth<0){S.calMonth=11;S.calYear--;} if(S.calMonth>11){S.calMonth=0;S.calYear++;}
+  renderCalendar();
+}
+function renderCalendar(){
+  document.getElementById('cal-title').textContent=MONTHS[S.calMonth]+' '+S.calYear;
+  const today=new Date(),first=new Date(S.calYear,S.calMonth,1);
+  const dow=(first.getDay()+6)%7,days=new Date(S.calYear,S.calMonth+1,0).getDate();
+  let h=DAYS.map(d=>`<div class="cal-dh">${d}</div>`).join('');
+  for(let i=0;i<dow;i++) h+='<div class="cal-day empty"></div>';
+  for(let d=1;d<=days;d++){
+    const ds=`${S.calYear}-${String(S.calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isT=d===today.getDate()&&S.calMonth===today.getMonth()&&S.calYear===today.getFullYear();
+    const evs=S.planned.filter(p=>p.date===ds);
+    const dots=evs.map(e=>{
+      const vn=S.venues.find(x=>x.id===e.venueId);
+      const cls=vn?vn.type.split(' ')[0].toLowerCase():'';
+      return`<span class="cal-dot ${cls}"></span>`;
+    }).join('');
+    h+=`<div class="cal-day${isT?' today':''}"><span class="cal-dn">${d}</span><div class="cal-dots">${dots}</div></div>`;
+  }
+  document.getElementById('cal-grid').innerHTML=h;
+  const mp=S.planned.filter(p=>{const d=new Date(p.date);return d.getFullYear()===S.calYear&&d.getMonth()===S.calMonth;}).sort((a,b)=>a.date.localeCompare(b.date));
+  const pl=document.getElementById('planned-list');
+  if(!mp.length){pl.innerHTML='<div style="color:var(--muted);font-size:.82rem;text-align:center;padding:.875rem 0;">Noch keine Ausflüge in diesem Monat</div>';return;}
+  pl.innerHTML=mp.map(p=>{
+    const v=S.venues.find(x=>x.id===p.venueId);if(!v)return'';
+    const dl=new Date(p.date+'T12:00:00').toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'short'});
+    const note=p.note?`<div class="pi-note">💬 ${p.note}</div>`:'';
+    return`<div class="pi"><span class="pi-emoji">${v.emoji}</span><div class="pi-info"><div class="pi-name">${v.name}</div><div class="pi-date">${dl}</div>${note}</div><button class="pi-del" onclick="delPlanned('${p.id}')">🗑</button></div>`;
+  }).join('');
+}
+function delPlanned(id){S.planned=S.planned.filter(p=>p.id!==id);save();renderCalendar();toast('Ausflug entfernt');}
+
+// Plan Modal
+function openPlan(vid){
+  S.dp={venueId:vid,year:new Date().getFullYear(),month:new Date().getMonth(),sel:null};
+  const v=S.venues.find(x=>x.id===vid);
+  document.getElementById('plan-vc-name').textContent=v?v.emoji+' '+v.name:'–';
+  document.getElementById('plan-note').value='';
+  renderDp();document.getElementById('plan-overlay').classList.add('open');
+}
+function closePlan(){document.getElementById('plan-overlay').classList.remove('open');}
+function dpNav(d){
+  S.dp.month+=d;
+  if(S.dp.month<0){S.dp.month=11;S.dp.year--;} if(S.dp.month>11){S.dp.month=0;S.dp.year++;}
+  renderDp();
+}
+function renderDp(){
+  const{year,month,sel}=S.dp;
+  document.getElementById('dp-title').textContent=MONTHS[month]+' '+year;
+  const today=new Date(),first=new Date(year,month,1);
+  const dow=(first.getDay()+6)%7,days=new Date(year,month+1,0).getDate();
+  let h=DAYS.map(d=>`<div class="dp-dh">${d}</div>`).join('');
+  for(let i=0;i<dow;i++) h+='<div class="dp-cell dp-empty"></div>';
+  for(let d=1;d<=days;d++){
+    const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isSel=ds===sel,isT=d===today.getDate()&&month===today.getMonth()&&year===today.getFullYear();
+    h+=`<button class="dp-cell${isSel?' dp-sel':''}${isT?' dp-today':''}" onclick="selDate('${ds}')">${d}</button>`;
+  }
+  document.getElementById('dp-grid').innerHTML=h;
+}
+function selDate(ds){S.dp.sel=ds;renderDp();}
+function confirmPlan(){
+  if(!S.dp.sel){toast('Bitte ein Datum auswählen');return;}
+  const note=document.getElementById('plan-note').value.trim();
+  S.planned.push({id:Date.now().toString(36),venueId:S.dp.venueId,date:S.dp.sel,note});
+  const d=new Date(S.dp.sel);S.calYear=d.getFullYear();S.calMonth=d.getMonth();
+  save();closePlan();renderCalendar();toast('Ausflug eingeplant! 🎉');
+}
+
+// Manage
+function renderManage(){
+  document.getElementById('manage-list').innerHTML=S.venues.map(v=>`
+    <div class="mi"><span class="mi-emoji">${v.emoji}</span>
+      <div class="mi-info"><div class="mi-name">${v.name}</div>
+        <div class="mi-sub">${v.type} · ${v.distanceKm} km · ⭐ ${v.googleRating}${v.dates?' · 📅 '+v.dates.substring(0,25):''}</div></div>
+      <div class="mi-acts">
+        <button class="btn-ic btn-edit" onclick="openEditVenue(${v.id})">✏️</button>
+        <button class="btn-ic btn-del"  onclick="delVenue(${v.id})">🗑️</button>
+      </div></div>`).join('');
+}
+function openAddVenue(){
+  document.getElementById('vm-title').textContent='Neuer Ort';
+  document.getElementById('vm-id').value='';
+  ['vm-name','vm-addr','vm-cost','vm-dates','vm-hours','vm-desc','vm-maps','vm-web'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('vm-type').value='Indoor Spielplatz';
+  document.getElementById('vm-emoji').value='🎪';
+  document.getElementById('vm-dist').value='';
+  document.getElementById('vm-rating').value='4.0';
+  document.getElementById('vm-minage').value='0';
+  document.getElementById('vm-maxage').value='12';
+  document.getElementById('venue-overlay').classList.add('open');
+}
+function openEditVenue(id){
+  const v=S.venues.find(x=>x.id===id);if(!v)return;
+  document.getElementById('vm-title').textContent='Ort bearbeiten';
+  document.getElementById('vm-id').value=id;
+  document.getElementById('vm-name').value=v.name;
+  document.getElementById('vm-type').value=v.type;
+  document.getElementById('vm-emoji').value=v.emoji;
+  document.getElementById('vm-addr').value=v.address||'';
+  document.getElementById('vm-dist').value=v.distanceKm??'';
+  document.getElementById('vm-rating').value=v.googleRating??'';
+  document.getElementById('vm-minage').value=v.minAge??0;
+  document.getElementById('vm-maxage').value=v.maxAge??99;
+  document.getElementById('vm-cost').value=v.cost||'';
+  document.getElementById('vm-dates').value=v.dates||'';
+  document.getElementById('vm-hours').value=v.openHours||'';
+  document.getElementById('vm-desc').value=v.description||'';
+  document.getElementById('vm-maps').value=v.googleMapsUrl||'';
+  document.getElementById('vm-web').value=v.website||'';
+  document.getElementById('venue-overlay').classList.add('open');
+}
+function closeVenueModal(){document.getElementById('venue-overlay').classList.remove('open');}
+function saveVenue(){
+  const name=document.getElementById('vm-name').value.trim();
+  if(!name){toast('Name ist Pflichtfeld');return;}
+  const eid=document.getElementById('vm-id').value;
+  const data={name,type:document.getElementById('vm-type').value,
+    emoji:document.getElementById('vm-emoji').value||'🎪',
+    address:document.getElementById('vm-addr').value,
+    distanceKm:parseFloat(document.getElementById('vm-dist').value)||0,
+    googleRating:parseFloat(document.getElementById('vm-rating').value)||4.0,
+    minAge:parseInt(document.getElementById('vm-minage').value)||0,
+    maxAge:parseInt(document.getElementById('vm-maxage').value)||99,
+    cost:document.getElementById('vm-cost').value,
+    dates:document.getElementById('vm-dates').value,
+    openHours:document.getElementById('vm-hours').value,
+    description:document.getElementById('vm-desc').value,
+    googleMapsUrl:document.getElementById('vm-maps').value,
+    website:document.getElementById('vm-web').value};
+  if(eid){
+    const i=S.venues.findIndex(v=>v.id===parseInt(eid));
+    if(i!==-1) S.venues[i]={...S.venues[i],...data};
+    toast('Ort aktualisiert ✓');
+  }else{data.id=Date.now();S.venues.push(data);toast('Ort hinzugefügt ✓');}
+  save();renderManage();renderDiscover();closeVenueModal();
+}
+function delVenue(id){
+  if(!confirm('Diesen Ort wirklich löschen?'))return;
+  S.venues=S.venues.filter(v=>v.id!==id);
+  S.planned=S.planned.filter(p=>p.venueId!==id);
+  save();renderManage();renderDiscover();toast('Ort gelöscht');
+}
+function resetToDefaults(){
+  if(!confirm('Liste auf Standard zurücksetzen? Eigene Orte gehen verloren.'))return;
+  S.venues=DEF.map(v=>({...v}));save();renderManage();renderDiscover();toast('Liste zurückgesetzt');
+}
+
+// Settings
+function renderSettings(){
+  if(!S.profile)return;
+  const a=getAge(S.profile.birthdate);
+  document.getElementById('prof-av').textContent=S.profile.name[0].toUpperCase();
+  document.getElementById('prof-name').textContent=S.profile.name;
+  document.getElementById('prof-age').textContent=fmtAgeLg(a);
+  document.getElementById('set-name').value=S.profile.name;
+  document.getElementById('set-bday').value=S.profile.birthdate;
+  document.getElementById('ver-tag').textContent=APP_VERSION;
+  if(apiKey) document.getElementById('api-key-input').value=apiKey;
+}
+function saveProfileSettings(){
+  const name=document.getElementById('set-name').value.trim();
+  const bday=document.getElementById('set-bday').value;
+  if(!name||!bday){toast('Name und Geburtsdatum erforderlich');return;}
+  S.profile={name,birthdate:bday};
+  save();updateHeader();renderSettings();renderDiscover();toast('Profil gespeichert ✓');
+}
+
+// API Key
+function saveApiKey(){
+  const key=document.getElementById('api-key-input').value.trim();
+  if(!key){toast('Bitte API-Key eingeben');return;}
+  apiKey=key;localStorage.setItem('kidsmap_apikey',key);
+  document.getElementById('api-status').textContent='✓ Gespeichert';
+  document.getElementById('api-status').className='api-status ok';
+  toast('API-Key gespeichert ✓');
+}
+function toggleKey(){
+  const inp=document.getElementById('api-key-input');
+  const btn=document.getElementById('key-toggle');
+  if(inp.type==='password'){inp.type='text';btn.textContent='🙈';}
+  else{inp.type='password';btn.textContent='👁';}
+}
+async function testApiKey(){
+  const key=document.getElementById('api-key-input').value.trim();
+  if(!key){toast('Bitte erst API-Key eingeben');return;}
+  const st=document.getElementById('api-status');
+  st.textContent='🔄 Teste…';st.className='api-status';
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:10,messages:[{role:'user',content:'Hi'}]})
+    });
+    if(r.ok){st.textContent='✅ Verbindung erfolgreich!';st.className='api-status ok';}
+    else{const e=await r.json();st.textContent='❌ '+e.error?.message?.substring(0,60);st.className='api-status err';}
+  }catch(e){st.textContent='❌ Netzwerkfehler';st.className='api-status err';}
+}
+
+// AI Update
+function openAiModal(vid){
+  aiVenueId=vid;aiParsedData=null;
+  const v=S.venues.find(x=>x.id===vid);
+  document.getElementById('ai-venue-name').textContent=v?v.emoji+' '+v.name:'–';
+  document.getElementById('ai-extra').value='';
+  document.getElementById('ai-response-area').style.display='none';
+  document.getElementById('ai-loading-area').style.display='none';
+  document.getElementById('ai-apply-btn').style.display='none';
+  document.getElementById('ai-run-btn').disabled=false;
+  document.getElementById('ai-overlay').classList.add('open');
+}
+function closeAiModal(){document.getElementById('ai-overlay').classList.remove('open');}
+async function runAiUpdate(){
+  if(!apiKey){toast('Bitte zuerst API-Key in den Einstellungen speichern');return;}
+  const v=S.venues.find(x=>x.id===aiVenueId);if(!v)return;
+  const extra=document.getElementById('ai-extra').value.trim();
+  document.getElementById('ai-run-btn').disabled=true;
+  document.getElementById('ai-loading-area').style.display='block';
+  document.getElementById('ai-response-area').style.display='none';
+  const prompt=`Du bist Assistent für die Familien-App KidsMap (Standort: Moers, NRW).
+Recherchiere aktuelle Informationen zu diesem Ort und antworte auf Deutsch:
+
+Ort: ${v.name}
+Adresse: ${v.address||'unbekannt'}
+Typ: ${v.type}
+${extra?'Fokus: '+extra:'Liefere: Termine/Datum 2026, Öffnungszeiten, Eintrittspreise, Kurzbeschreibung.'}
+
+Aktuelle gespeicherte Infos:
+- Termine: ${v.dates||'keine'}
+- Öffnungszeiten: ${v.openHours||'keine'}
+- Kosten: ${v.cost||'keine'}
+
+Antworte NUR als JSON (kein Markdown, kein Text außerhalb):
+{"dates":"Termine oder null","openHours":"Öffnungszeiten oder null","cost":"Kosten oder null","description":"Max. 2 Sätze oder null","googleRating":Zahl_oder_null,"hinweis":"Hinweis falls unsicher"}`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,
+        system:'Antworte ausschließlich mit einem validen JSON-Objekt. Kein Markdown, kein Text davor oder danach.',
+        messages:[{role:'user',content:prompt}]})
+    });
+    const data=await r.json();
+    document.getElementById('ai-loading-area').style.display='none';
+    document.getElementById('ai-response-area').style.display='block';
+    if(!r.ok) throw new Error(data.error?.message||'API-Fehler');
+    const raw=data.content.map(c=>c.text||'').join('').trim();
+    try{
+      aiParsedData=JSON.parse(raw.replace(/```json|```/g,'').trim());
+      let disp='';
+      if(aiParsedData.dates)       disp+=`📅 Termine: ${aiParsedData.dates}\n`;
+      if(aiParsedData.openHours)   disp+=`🕐 Öffnungszeiten: ${aiParsedData.openHours}\n`;
+      if(aiParsedData.cost)        disp+=`💰 Kosten: ${aiParsedData.cost}\n`;
+      if(aiParsedData.googleRating)disp+=`⭐ Rating: ${aiParsedData.googleRating}\n`;
+      if(aiParsedData.description) disp+=`📝 ${aiParsedData.description}\n`;
+      if(aiParsedData.hinweis)     disp+=`\n💡 ${aiParsedData.hinweis}`;
+      document.getElementById('ai-response-text').textContent=disp||'Keine neuen Infos gefunden.';
+      document.getElementById('ai-apply-btn').style.display=disp?'flex':'none';
+    }catch{
+      document.getElementById('ai-response-text').textContent=raw;
+      aiParsedData=null;
+    }
+  }catch(err){
+    document.getElementById('ai-loading-area').style.display='none';
+    document.getElementById('ai-response-area').style.display='block';
+    document.getElementById('ai-response-text').textContent='❌ Fehler: '+err.message;
+  }
+  document.getElementById('ai-run-btn').disabled=false;
+}
+function applyAiUpdate(){
+  if(!aiParsedData||!aiVenueId)return;
+  const i=S.venues.findIndex(v=>v.id===aiVenueId);if(i===-1)return;
+  const d=aiParsedData;
+  if(d.dates&&d.dates!=='null')         S.venues[i].dates=d.dates;
+  if(d.openHours&&d.openHours!=='null') S.venues[i].openHours=d.openHours;
+  if(d.cost&&d.cost!=='null')           S.venues[i].cost=d.cost;
+  if(d.description&&d.description!=='null') S.venues[i].description=d.description;
+  if(d.googleRating&&d.googleRating!=='null') S.venues[i].googleRating=parseFloat(d.googleRating)||S.venues[i].googleRating;
+  save();renderDiscover();renderManage();closeAiModal();toast('Karte aktualisiert ✓');
+}
+
+// Update / Version
+function checkForUpdateSilent(){if(swReg) swReg.update().catch(()=>{});}
+function checkForUpdate(){
+  if(swReg) swReg.update().then(()=>toast('Update-Prüfung abgeschlossen')).catch(()=>toast('Prüfung fehlgeschlagen'));
+  else toast('Hard Refresh empfohlen');
+}
+function hardRefresh(){
+  if('caches' in window){
+    caches.keys().then(ks=>Promise.all(ks.map(k=>caches.delete(k)))).then(()=>location.reload(true));
+  }else location.reload(true);
+}
+function showUpdateBanner(){document.getElementById('upd-banner').classList.add('show');}
+
+// Toast
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// Close overlays on backdrop tap
+['plan-overlay','venue-overlay','ai-overlay'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',function(e){
+    if(e.target===this)this.classList.remove('open');
+  });
+});
+
+// PWA
+function makeIcon(sz){
+  const c=document.createElement('canvas');c.width=c.height=sz;
+  const ctx=c.getContext('2d');
+  const g=ctx.createLinearGradient(0,0,sz,sz);
+  g.addColorStop(0,'#1B3A5C');g.addColorStop(1,'#264D78');
+  ctx.fillStyle=g;
+  if(ctx.roundRect) ctx.roundRect(0,0,sz,sz,sz*.22);
+  else ctx.rect(0,0,sz,sz);
+  ctx.fill();
+  ctx.font=`${sz*.55}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('🗺️',sz/2,sz/2+sz*.03);
+  return c.toDataURL('image/png');
+}
+const ic192=makeIcon(192),ic512=makeIcon(512);
+const al=document.createElement('link');al.rel='apple-touch-icon';al.href=ic192;document.head.appendChild(al);
+const ml=document.createElement('link');ml.rel='manifest';
+ml.href='data:application/manifest+json,'+encodeURIComponent(JSON.stringify({
+  name:'KidsMap – Ausflüge für Kids',short_name:'KidsMap',
+  description:'Altersgerechte Ausflugsziele rund um Moers',
+  start_url:'.',display:'standalone',orientation:'portrait-primary',
+  background_color:'#EFF4F9',theme_color:'#1B3A5C',lang:'de',
+  icons:[{src:ic192,sizes:'192x192',type:'image/png',purpose:'any maskable'},
+         {src:ic512,sizes:'512x512',type:'image/png',purpose:'any maskable'}]
+}));
+document.head.appendChild(ml);
+
+if('serviceWorker' in navigator){
+  const sw=`const C='kidsmap-v2.1.0';
+self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.add('/')).then(()=>self.skipWaiting())));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>new Response('Offline',{status:503})))));`;
+  const blob=new Blob([sw],{type:'application/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(blob)).then(reg=>{
+    swReg=reg;
+    reg.addEventListener('updatefound',()=>{
+      const nw=reg.installing;
+      nw.addEventListener('statechange',()=>{
+        if(nw.state==='installed'&&navigator.serviceWorker.controller) showUpdateBanner();
+      });
+    });
+  }).catch(()=>{});
+}
+
+// Init
+load();
+if(!S.profile){
+  document.getElementById('setup-screen').classList.add('active');
+  const d=new Date();d.setFullYear(d.getFullYear()-3);
+  document.getElementById('s-bday').value=d.toISOString().split('T')[0];
+}else{
+  document.getElementById('app-screen').classList.add('active');
+  document.getElementById('r-slider').value=S.radius;
+  document.getElementById('r-val').textContent=S.radius+' km';
+  document.getElementById('ver-tag').textContent=APP_VERSION;
+  if(apiKey) document.getElementById('api-key-input').value=apiKey;
+  updateHeader();renderDiscover();renderCalendar();renderManage();renderSettings();
+  checkForUpdateSilent();
+}
+</script>
+</body>
+</html>
