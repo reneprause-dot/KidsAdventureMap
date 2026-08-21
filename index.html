@@ -343,6 +343,27 @@ textarea{resize:vertical;min-height:72px;}
   transition:all .18s;-webkit-tap-highlight-color:transparent;}
 .sort-btn.on{border-color:var(--coral);background:var(--coral);color:#fff;}
 .sort-dir{font-size:.7rem;opacity:.8;}
+
+/* ── Venue Search ─────────────────────────────────────────────── */
+.venue-search-wrap{
+  padding:.5rem max(1rem,var(--safe-left)) .35rem;
+  background:#fff;border-bottom:1px solid var(--border);flex-shrink:0;
+  position:relative;
+}
+.venue-search-input{
+  width:100%;padding:.55rem .875rem .55rem 2.1rem;
+  border:2px solid var(--border);border-radius:24px;
+  font-family:'Inter',sans-serif;font-size:16px;color:var(--text);
+  background:var(--bg);outline:none;transition:border-color .2s;
+  -webkit-appearance:none;
+}
+.venue-search-input:focus{border-color:var(--teal);background:#fff;}
+.venue-search-icon{position:absolute;left:calc(max(1rem,var(--safe-left)) + .65rem);
+  top:50%;transform:translateY(-50%);font-size:.95rem;pointer-events:none;}
+.venue-search-clear{position:absolute;right:calc(max(1rem,var(--safe-right)) + .5rem);
+  top:50%;transform:translateY(-50%);background:none;border:none;
+  color:var(--muted);font-size:.9rem;cursor:pointer;padding:.25rem;display:none;}
+.venue-search-clear.show{display:flex;}
 </style>
 </head>
 <body>
@@ -457,6 +478,14 @@ textarea{resize:vertical;min-height:72px;}
       <button class="sort-btn"   id="sb-alpha"   onclick="setSort('alpha')">  &#x1F524; A&#x2013;Z</button>
       <button class="sort-btn"   id="sb-type"    onclick="setSort('type')">   &#x1F3F7; Kategorie</button>
       <button class="sort-btn"   id="sb-free"    onclick="setSort('free')">   &#x1F193; Kostenlos zuerst</button>
+    </div>
+    <div class="venue-search-wrap">
+      <span class="venue-search-icon">&#x1F50D;</span>
+      <input type="text" class="venue-search-input" id="venue-search-input"
+        placeholder="Ort suchen&#x2026; z. B. Monkey Town, Zoo, Indoor"
+        autocomplete="off" oninput="onVenueSearch(this.value)">
+      <button class="venue-search-clear" id="venue-search-clear"
+        onclick="clearVenueSearch()">&#x2715;</button>
     </div>
     <div class="scroll"><div class="venues-grid" id="v-grid"></div></div>
   </div>
@@ -573,12 +602,7 @@ textarea{resize:vertical;min-height:72px;}
         <button class="btn-secondary" onclick="checkForUpdate()">Auf Update pr&#xFC;fen</button>
       </div>
 
-      <div class="settings-sect">
-        <div class="ss-title">Standort</div>
-        <div class="form-group"><label>Suchzentrum (fest)</label>
-          <input type="text" value="47443 Moers, Deutschland" readonly style="background:#f8f8f8;color:var(--muted);"></div>
-        <p style="font-size:.78rem;color:var(--muted);line-height:1.6;">Radius im Entdecken-Tab anpassen (5&#x2013;150 km).</p>
-      </div>
+
 
       <div class="settings-sect">
         <div class="ss-title">&#xDC;ber KidsMap</div>
@@ -1461,13 +1485,17 @@ Antworte NUR als JSON (kein Markdown, kein Text außerhalb):
   try{
     const pUrl=(proxyUrl||localStorage.getItem('kidsmap_proxy')||'').replace(/\/+$/,'');
     const aiEndpoint=pUrl?pUrl+'/api/claude':'https://api.anthropic.com/v1/messages';
+    const ctrl2=new AbortController();
+    const tid2=setTimeout(()=>ctrl2.abort(),20000);
     const r=await fetch(aiEndpoint,{
       method:'POST',
+      signal:ctrl2.signal,
       headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,
         system:'Antworte ausschließlich mit einem validen JSON-Objekt. Kein Markdown, kein Text davor oder danach.',
         messages:[{role:'user',content:prompt}]})
     });
+    clearTimeout(tid2);
     const data=await r.json();
     document.getElementById('ai-loading-area').style.display='none';
     document.getElementById('ai-response-area').style.display='block';
@@ -1680,7 +1708,8 @@ const CITIES=[
 ];
 
 // ════════════════════════ LOCATION SEARCH STATE ══════════════════════
-let sortState = { key: 'match', dir: 1 }; // key, dir: 1=asc/-1=desc
+let sortState = { key: 'match', dir: 1 };
+let venueQuery = ''; // key, dir: 1=asc/-1=desc
 
 let locState = {
   text: 'Moers',
@@ -1807,9 +1836,13 @@ Antworte NUR als JSON-Array (kein Markdown, kein Text außerhalb), mit diesen Fe
   "weather": "indoor|outdoor"
 }]`;
 
+  // Timeout after 25 seconds
+  const controller=new AbortController();
+  const timeoutId=setTimeout(()=>controller.abort(),25000);
   try{
     const r=await fetch(endpoint,{
       method:'POST',
+      signal:controller.signal,
       headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
       body:JSON.stringify({
         model:'claude-sonnet-4-6',max_tokens:3000,
@@ -1817,6 +1850,7 @@ Antworte NUR als JSON-Array (kein Markdown, kein Text außerhalb), mit diesen Fe
         messages:[{role:'user',content:prompt}]
       })
     });
+    clearTimeout(timeoutId);
     const data=await r.json();
     if(!r.ok) throw new Error(data.error?.message||'API-Fehler '+r.status);
     const raw=data.content.map(c=>c.text||'').join('').trim();
@@ -1831,7 +1865,12 @@ Antworte NUR als JSON-Array (kein Markdown, kein Text außerhalb), mit diesen Fe
     locState.savedIds=new Set();
     showSearchResults(rawInput);
   }catch(err){
-    toast('❌ '+err.message.substring(0,60));
+    clearTimeout(timeoutId);
+    if(err.name==='AbortError'){
+      toast('⏱ Zeitüberschreitung – bitte erneut versuchen');
+    } else {
+      toast('❌ '+err.message.substring(0,60));
+    }
   }finally{
     statusEl.classList.remove('show');
     document.getElementById('ai-search-btn').disabled=false;
@@ -1868,6 +1907,19 @@ function addFromSearch(idx){
   renderManage();
   renderDiscover();
   toast('✓ '+v.name+' zur Liste hinzugefügt');
+}
+
+// ════════════════════════ VENUE SEARCH ══════════════════════════════
+function onVenueSearch(val){
+  venueQuery=val.toLowerCase().trim();
+  document.getElementById('venue-search-clear').classList.toggle('show', val.length>0);
+  renderDiscover();
+}
+function clearVenueSearch(){
+  venueQuery='';
+  document.getElementById('venue-search-input').value='';
+  document.getElementById('venue-search-clear').classList.remove('show');
+  renderDiscover();
 }
 
 // ════════════════════════ SORT ══════════════════════════════════════
@@ -1939,6 +1991,17 @@ function renderDiscover(){
   if(S.typeFilter==='fav')  list=list.filter(v=>S.favorites.includes(v.id));
   else if(S.typeFilter==='free') list=list.filter(v=>isFree(v));
   else if(S.typeFilter!=='all')  list=list.filter(v=>v.type===S.typeFilter);
+  // Text search filter
+  if(venueQuery){
+    list=list.filter(v=>{
+      const q=venueQuery;
+      return v.name.toLowerCase().includes(q)
+        || v.type.toLowerCase().includes(q)
+        || (v.description||'').toLowerCase().includes(q)
+        || (v.address||'').toLowerCase().includes(q)
+        || (v.cost||'').toLowerCase().includes(q);
+    });
+  }
   list=applySort(list);
 
   document.getElementById('stats-bar').innerHTML=
