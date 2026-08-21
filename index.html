@@ -609,7 +609,8 @@ textarea{resize:vertical;min-height:72px;}
         <p style="font-size:.78rem;color:var(--muted);line-height:1.65;">
           Altersgerechte Ausflugsziele f&#xFC;r dein Kind &#x2013; Daten lokal gespeichert.<br>
           Bewertungen &amp; Kosten: Stand 2025/26, k&#xF6;nnen variieren.<br><br>
-          <strong>Version 2.1.0</strong> &#xB7; Moers (47443)
+          <strong id="about-version-text">Version 2.1.0</strong>
+          <span id="about-home-location"></span>
         </p>
       </div>
     </div></div>
@@ -984,8 +985,8 @@ function hideSetupAc(){const d=document.getElementById('s-plz-drop');if(d)d.styl
 
 function saveProfile(){
   const plzInput=document.getElementById('s-plz');
-  const plz=plzInput?.dataset?.plz||'47443';
-  const city=plzInput?.dataset?.city||plzInput?.value?.trim()||'Moers';
+  const plz=plzInput?.dataset?.plz||plzInput?.value?.trim()||'';
+  const city=plzInput?.dataset?.city||plzInput?.value?.trim()||'';
   const validChildren=setupChildren.filter(c=>c.name.trim()&&c.birthdate);
   if(!validChildren.length){toast('Bitte mindestens ein Kind mit Name und Geburtsdatum eintragen');return;}
   S.profile={homePlz:plz,homeCity:city,children:validChildren};
@@ -1009,8 +1010,8 @@ function getChildren(){
   if(S.profile.name&&S.profile.birthdate)return[{name:S.profile.name,birthdate:S.profile.birthdate}];
   return[];
 }
-function getHomePlz(){return S.profile?.homePlz||'47443';}
-function getHomeCity(){return S.profile?.homeCity||'Moers';}
+function getHomePlz(){return S.profile?.homePlz||'';}
+function getHomeCity(){return S.profile?.homeCity||'';}
 
 function ageMatchAll(v){
   const children=getChildren();
@@ -1074,9 +1075,16 @@ function launchApp(){
   }
   updateHeader();renderDiscover();renderCalendar();renderManage();renderSettings();
   checkForUpdateSilent();
-  // Set search bar default to home location
+  // Pre-fill search bar with home location
   const li=document.getElementById('loc-input');
-  if(li&&!li.value&&S.profile) li.placeholder='z. B. '+getHomeCity()+' oder andere PLZ…';
+  if(li&&S.profile){
+    li.value=getHomeCity()+' ('+getHomePlz()+')';
+    li.dataset.plz=getHomePlz();
+    li.dataset.city=getHomeCity();
+    document.getElementById('loc-clear-btn')?.classList.add('show');
+    locState.plz=getHomePlz();
+    locState.text=getHomeCity();
+  }
 }
 function switchTab(tab){
   ['discover','calendar','manage','settings'].forEach(t=>{
@@ -1291,6 +1299,9 @@ function resetToDefaults(){
 function renderSettings(){
   if(!S.profile)return;
   const children=getChildren();
+  // Update Über section with dynamic home city
+  const ahl=document.getElementById('about-home-location');
+  if(ahl) ahl.textContent=' · '+getHomeCity()+' ('+getHomePlz()+')';
   document.getElementById('ver-tag').textContent=APP_VERSION;
   if(apiKey) document.getElementById('api-key-input').value=apiKey;
   if(proxyUrl){const pi=document.getElementById('proxy-url-input');if(pi) pi.value=proxyUrl;}
@@ -1347,8 +1358,8 @@ function selectSetPlz(plz,name){
 function hideSetPlzAc(){const d=document.getElementById('set-plz-drop');if(d)d.style.display='none';}
 function saveHomePlz(){
   const el=document.getElementById('set-plz');if(!el)return;
-  const plz=el.dataset.plz||el.value.trim()||'47443';
-  const city=el.dataset.city||el.value.trim()||'Moers';
+  const plz=el.dataset.plz||el.value.trim()||'';
+  const city=el.dataset.city||el.value.trim()||'';
   if(!S.profile)S.profile={children:[]};
   S.profile.homePlz=plz;S.profile.homeCity=city;
   save();toast('Wohnort gespeichert: '+city+' ('+plz+')');
@@ -1373,7 +1384,7 @@ function saveChild(){
   const name=document.getElementById('child-name-input').value.trim();
   const bday=document.getElementById('child-bday-input').value;
   if(!name||!bday){toast('Name und Geburtsdatum erforderlich');return;}
-  if(!S.profile)S.profile={homePlz:'47443',homeCity:'Moers',children:[]};
+  if(!S.profile)S.profile={homePlz:'',homeCity:'',children:[]};
   if(!S.profile.children)S.profile.children=[];
   const idx=document.getElementById('child-edit-idx').value;
   if(idx!==''){S.profile.children[parseInt(idx)]={name,birthdate:bday};toast('Kind aktualisiert ✓');}
@@ -1712,8 +1723,8 @@ let sortState = { key: 'match', dir: 1 };
 let venueQuery = ''; // key, dir: 1=asc/-1=desc
 
 let locState = {
-  text: 'Moers',
-  plz: '47443',
+  text: '',
+  plz: '',
   searchResults: [],   // AI-found venues (not yet saved)
   savedIds: new Set()  // IDs added from search results
 };
